@@ -7,8 +7,8 @@
     }
   ],
   "fluid": {
-    "fluid_name": "WATER",
-    "concentration_percent": 0,
+    "fluid_name": "PROPYLENEGLYCOL",
+    "concentration_percent": 30,
     "temperature": 20
   },
   "ground-heat-exchanger": {
@@ -20,7 +20,7 @@
       "soil": {
         "conductivity": 2,
         "rho_cp": 2343493,
-        "undisturbed_temp": 18.3
+        "undisturbed_temp": 6.1
       },
       "pipe": {
         "inner_diameter": 0.03404,
@@ -38,15 +38,15 @@
       "geometric_constraints": {
         "length": 100,
         "width": 100,
-        "b_min": 2,
-        "b_max_x": 10,
-        "b_max_y": 12,
-        "max_height": 135,
-        "min_height": 60,
+        "b_min": 5,
+        "b_max_x": 5,
+        "b_max_y": 5,
+        "max_height": 100,
+        "min_height": 100,
         "method": "BIRECTANGLE"
       },
       "design": {
-        "flow_rate": 0.5,
+        "flow_rate": 32.6,
         "flow_type": "BOREHOLE",
         "max_eft": 35,
         "min_eft": 5

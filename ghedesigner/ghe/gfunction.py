@@ -116,6 +116,14 @@ def calc_g_func_for_multiple_lengths(
 
     alpha = soil.k / soil.rhoCp
 
+    # My addtion begins here
+    # 🔁 Replace coordinates with a fixed field at spacing b = 5.0
+    from ground_heat_exchangers import read_case_data, file_path_cases, selected_case
+    n_rows, n_cols, b_spacing, *_ = read_case_data(file_path_cases, selected_case)
+
+    coordinates = [(i * b_spacing, j * b_spacing) for i in range(n_rows) for j in range(n_cols)]
+    # My addition ends here
+
     for h in h_values:
         borehole = Borehole(h, depth, r_b, 0.0, 0.0)
 
