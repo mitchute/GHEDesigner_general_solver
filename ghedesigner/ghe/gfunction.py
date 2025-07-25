@@ -46,7 +46,7 @@ def calculate_g_function(
         bore_field.append(_borehole)
         # Initialize pipe model
         if boundary == "MIFT":
-            bhe = get_bhe_object(bhe_type, m_flow_borehole, fluid, _borehole, pipe, grout, soil)
+            bhe = get_bhe_object(bhe_type, m_flow_borehole, fluid, borehole, pipe, grout, soil)
             bhe_objects.append(bhe)
 
     alpha = soil.k / soil.rhoCp
