@@ -4,13 +4,15 @@ from ghedesigner.ghe.runner_code import read_data_from_json_file
 import time
 
 System = GHEHPSystem()
-
 start_time = time.time()
+
 
 def AnimationCallback(frame, nframes):
     # calculations needed to configure the picture
     # these could be done here or by calling a class method
     System.current_frame = (frame + 1) * 145
+
+
 def main():
     f1 = open("3ghe-6hp_layout_input file.txt", 'r')  # open the file for reading     # "3ghe-6hp_layout_input file.txt"
     data = f1.readlines()  # read the entire file as a list of strings
@@ -35,30 +37,10 @@ def main():
     gl2d.glStartAnimation(AnimationCallback, nframes, delaytime=0.1,
                           reverse=False, repeat=False, reset=False)
 
-
     gl2d.glWait()  # wait for the user to close the window
-
-
 
     print("Finished drawing 1")
 
-
-    #System.drawnetwork()
-    #System.precalculate()
-    # loop over all devices and tell all devices to precalculate their important numbers
-    #System.solve()
-
-    # System.solve will loop over all times
-        # loop over all devices and tell all devices to calculate their important numbers
-        # loop over all devices, grab the numbers, and put them in the matrix
-        # solve the matrix
-        # loop over all devices to post process
-
-
-
-    # #✅ Check how Building instances are stored
-    # for a in stored_data.nodes:
-    #     print(a.x, a.y)
 
 main()
 
