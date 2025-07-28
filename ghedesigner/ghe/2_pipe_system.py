@@ -1,9 +1,11 @@
 import numpy as np
 import pandas as pd
-from OpenGL.GL import *
-from OpenGL_2D_class_GLFW import gl2D, gl2DCircle, gl2DText,gl2DArrow,gl2DArc
 from HersheyFont import HersheyFont
+from OpenGL.GL import *
+from OpenGL_2D_class_GLFW import gl2D, gl2DArrow, gl2DCircle
+
 hf = HersheyFont()
+
 
 class GHX:
     def __init__(self):
@@ -22,6 +24,7 @@ class GHX:
         self.input = None
         self.output = None
 
+
 class Zone:
     def __init__(self):
         self.name = None
@@ -36,11 +39,13 @@ class Zone:
         self.input = None
         self.output = None
 
+
 class Building:
     def __init__(self):
         self.name = None
         self.ID = None
         self.zoneID = None
+
 
 class Node:
     def __init__(self):
@@ -49,6 +54,7 @@ class Node:
         self.x = None
         self.y = None
         self.z = None
+
 
 class Pipe:
     def __init__(self):
@@ -74,6 +80,7 @@ class HPmodel:
         self.design_htg_cap = None
         self.design_clg_cap = None
 
+
 class GHEHPSystem:
     def __init__(self):
         self.title = None
@@ -86,13 +93,13 @@ class GHEHPSystem:
 
     def read_GHEHPSystem_data(self, data):
         for line in data:  # loop over all the lines
-            cells = [c.strip() for c in line.strip().split(',')]
+            cells = [c.strip() for c in line.strip().split(",")]
             keyword = cells[0].lower()
 
-            if keyword == 'title':
+            if keyword == "title":
                 self.title = cells[1].replace("'", "")
 
-            if keyword == 'ghx':
+            if keyword == "ghx":
                 thisghx = GHX()
                 thisghx.ID = str(cells[1])
                 thisghx.type = str(cells[2])
@@ -107,14 +114,14 @@ class GHEHPSystem:
                 thisghx.m_flow_ghe_design = float(cells[11])
                 self.GHXs.append(thisghx)
 
-            if keyword == 'building':
+            if keyword == "building":
                 thisbuilding = Building()
                 thisbuilding.name = str(cells[1])
                 thisbuilding.ID = str(cells[2])
-                thisbuilding.zoneIDs = ([zones.strip() for zones in cells[3:]])
+                thisbuilding.zoneIDs = [zones.strip() for zones in cells[3:]]
                 self.buildings.append(thisbuilding)
 
-            if keyword == 'zone':
+            if keyword == "zone":
                 thiszone = Zone()
                 thiszone.name = str(cells[1])
                 thiszone.ID = str(cells[2])
@@ -126,7 +133,7 @@ class GHEHPSystem:
                 thiszone.beta = float(cells[8])
                 self.zones.append(thiszone)
 
-            if keyword == 'node':
+            if keyword == "node":
                 thisnode = Node()
                 thisnode.ID = str(cells[1])
                 thisnode.type = str(cells[2])
@@ -135,7 +142,7 @@ class GHEHPSystem:
                 thisnode.z = float(cells[5])
                 self.nodes.append(thisnode)
 
-            if keyword == 'pipe':
+            if keyword == "pipe":
                 thispipe = Pipe()
                 thispipe.ID = str(cells[1])
                 thispipe.type = str(cells[2])
@@ -144,18 +151,30 @@ class GHEHPSystem:
                 thispipe.length = float(cells[5])
                 self.pipes.append(thispipe)
 
-            if keyword == 'hpmodel':
+            if keyword == "hpmodel":
                 thishpmodel = HPmodel()
                 thishpmodel.name = str(cells[1])
                 thishpmodel.ID = str(cells[2])
-                thishpmodel.a_htg, thishpmodel.b_htg, thishpmodel.c_htg = (float(cells[3]), float(cells[4]),
-                                                                           float(cells[5]))
-                thishpmodel.a_clg, thishpmodel.b_clg, thishpmodel.c_clg = (float(cells[6]), float(cells[7]),
-                                                                           float(cells[8]))
-                thishpmodel.c1_htg, thishpmodel.c2_htg, thishpmodel.c3_htg = (float(cells[9]), float(cells[10]),
-                                                                              float(cells[11]))
-                thishpmodel.c1_clg, thishpmodel.c2_clg, thishpmodel.c3_clg = (float(cells[12]), float(cells[13]),
-                                                                              float(cells[14]))
+                thishpmodel.a_htg, thishpmodel.b_htg, thishpmodel.c_htg = (
+                    float(cells[3]),
+                    float(cells[4]),
+                    float(cells[5]),
+                )
+                thishpmodel.a_clg, thishpmodel.b_clg, thishpmodel.c_clg = (
+                    float(cells[6]),
+                    float(cells[7]),
+                    float(cells[8]),
+                )
+                thishpmodel.c1_htg, thishpmodel.c2_htg, thishpmodel.c3_htg = (
+                    float(cells[9]),
+                    float(cells[10]),
+                    float(cells[11]),
+                )
+                thishpmodel.c1_clg, thishpmodel.c2_clg, thishpmodel.c3_clg = (
+                    float(cells[12]),
+                    float(cells[13]),
+                    float(cells[14]),
+                )
                 thishpmodel.m_single_hp = float(cells[15])
                 thishpmodel.m_design_htg_cap = float(cells[16])
                 thishpmodel.m_design_clg_cap = float(cells[17])
@@ -165,7 +184,6 @@ class GHEHPSystem:
         self.UpdateConnections()
 
     def UpdateConnections(self):
-
         for pipe in self.pipes:
             pipe.input = FindItemByID(pipe.node_in_ID, self.nodes)
             pipe.output = FindItemByID(pipe.node_out_ID, self.nodes)
@@ -177,7 +195,6 @@ class GHEHPSystem:
         for zone in self.zones:
             zone.input = FindItemByID(zone.node_in_ID, self.nodes)
             zone.output = FindItemByID(zone.node_out_ID, self.nodes)
-
 
     def drawnetwork(self):
         pipes = self.pipes
@@ -229,7 +246,7 @@ class GHEHPSystem:
             gl2DArrow(xtip, ytip, size=1, angleDeg=angle, widthDeg=30, toCenter=False, fill=True)
 
         # Drawing nodes
-        #glColor3f(1, 0, 0)
+        # glColor3f(1, 0, 0)
         glLineWidth(3)
         radius = 0.5
         for node in nodes:
@@ -251,6 +268,7 @@ class GHEHPSystem:
         glLineWidth(3)
         hf.drawText("2 pipe_2ghx-3hp System", 35, -5, scale=2.5, slant=0, angle=0, center=True)
 
+
 def FindItemByID(ID, objectlist):
     # search a list of objects to find one with a particular name
     # of course, the objects must have a "name" member
@@ -260,8 +278,9 @@ def FindItemByID(ID, objectlist):
     # next item
     return None  # couldn't find it
 
+
 def main():
-    f1 = open("2-pipe_2ghx-3hp_input.txt", 'r')  # open the file for reading
+    f1 = open("2-pipe_2ghx-3hp_input.txt")  # open the file for reading
     data = f1.readlines()  # read the entire file as a list of strings
     f1.close()  # close the file  ... very important
 

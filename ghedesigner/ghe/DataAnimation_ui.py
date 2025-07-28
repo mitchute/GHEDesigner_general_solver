@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # Form implementation generated from reading ui file 'DataAnimation_ui.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.7
@@ -11,7 +9,7 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 
-class Ui_Dialog(object):
+class Ui_Dialog:
     def setupUi(self, Dialog):
         Dialog.setObjectName("Dialog")
         Dialog.setEnabled(True)
@@ -98,7 +96,7 @@ class Ui_Dialog(object):
         font = QtGui.QFont()
         font.setPointSize(9)
         self.label_22.setFont(font)
-        self.label_22.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.label_22.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
         self.label_22.setObjectName("label_22")
         self.Frame_Number = QtWidgets.QLineEdit(self.groupBox)
         self.Frame_Number.setGeometry(QtCore.QRect(510, 80, 71, 22))
@@ -118,7 +116,7 @@ class Ui_Dialog(object):
         font = QtGui.QFont()
         font.setPointSize(9)
         self.label_23.setFont(font)
-        self.label_23.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.label_23.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
         self.label_23.setObjectName("label_23")
         self.groupBox_2 = QtWidgets.QGroupBox(Dialog)
         self.groupBox_2.setGeometry(QtCore.QRect(10, 10, 1091, 101))

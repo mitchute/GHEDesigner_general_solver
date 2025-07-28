@@ -1,12 +1,9 @@
 import numpy as np
-
 from OpenGL.GL import *
+from OpenGL_2D_class_GLFW import gl2DCircle, gl2DText
 
-from OpenGL_2D_class_GLFW import  gl2DText, gl2DCircle
 
-
-class   SimpleDrawing():
-
+class SimpleDrawing:
     def __init__(self):
         # define any data (including object variables) your program might need
         self.giantX = -6
@@ -17,7 +14,7 @@ class   SimpleDrawing():
     def DoCalculations(self):
         pass
 
-    def DrawGiant(self,gx):
+    def DrawGiant(self, gx):
         glColor3f(0, 0, 0)
         gl2DText('Ho Ho Ho"', 0.6 + gx, 3.5)
 
@@ -29,8 +26,8 @@ class   SimpleDrawing():
 
         # draw the body
         glBegin(GL_LINES)  # begin drawing disconnedted lines
-        glVertex2f(0+gx,4)
-        glVertex2f(0+gx,1.5)
+        glVertex2f(0 + gx, 4)
+        glVertex2f(0 + gx, 1.5)
 
         glVertex2f(0 + gx, 2.8)
         glVertex2f(1 + gx, 1.5)
@@ -44,7 +41,6 @@ class   SimpleDrawing():
         glVertex2f(0 + gx, 1.5)
         glVertex2f(-1 + gx, 0)
         glEnd()
-
 
     def DrawPicture(self, drawgiant):
         # this is what actually draws the picture
@@ -76,7 +72,7 @@ class   SimpleDrawing():
 
         # Draw sun
         radius = 0.7
-        glColor3f(1, 1, 0)  #
+        glColor3f(1, 1, 0)
         glLineWidth(1)
         gl2DCircle(4, 4, radius, fill=True)
 
@@ -87,17 +83,12 @@ class   SimpleDrawing():
             glVertex2f(4 + 2 * radius * np.cos(theta[i]), 4 + 2 * radius * np.sin(theta[i]))
         glEnd()
 
-        glColor3f(1, 1, 1)  #
+        glColor3f(1, 1, 1)
         gl2DText('"Our House ..... is a very very very fine house"', 0.5, 5.5)
-
 
         # draw the giant at the current location
         if drawgiant:
             self.DrawGiant(self.giantX)
             glScalef(0.5, 0.5, 1)
-            self.DrawGiant(self.giantX+0.75)
-            glScalef(1/0.5  , 1/0.5, 1)
-
-
-
-
+            self.DrawGiant(self.giantX + 0.75)
+            glScalef(1 / 0.5, 1 / 0.5, 1)
