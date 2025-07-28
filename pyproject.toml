@@ -26,10 +26,10 @@ jsonschema = "^4.19"
 numpy = "^2.0.0"
 pygfunction = { git = "https://github.com/MassimoCimmino/pygfunction.git", rev = "7b26877cb2224bf53c70b9ff8de362b4bd977616" }
 scipy = "^1.14"
-PyOpenGL = "^3.1.9"
-PyOpenGL_accelerate = "^3.1.9"
-glfw = "^2.9.0"
-PyQt5 = "^5.15.11"
+# PyOpenGL = "^3.1.9"
+# PyOpenGL_accelerate = "^3.1.9"
+# glfw = "^2.9.0"
+# PyQt5 = "^5.15.11"
 
 [tool.poetry.group.dev.dependencies]
 mkdocs-material = "^9.5"

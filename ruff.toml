@@ -48,8 +48,11 @@ ignore = [
     "PLR0912", # too-many-branches
     "PLR0913", # too-many-arguments
     "PLR0915", # too-many-statements
-    "N803", # lower case, ignore for now
+    "N802", # lower case, ignore for now
+    "N803",
+    "N806",
     "F405",
+    "PD901",
 ]
 
 [lint.per-file-ignores]

@@ -33,7 +33,7 @@ class BaseGHE:
         self.fieldSpecifier = field_specifier
         self.V_flow_system = v_flow_system
         self.B_spacing = b_spacing
-        self.nbh = len(g_function.bore_locations)
+        # self.nbh = len(g_function.bore_locations)
         self.v_flow_borehole = self.v_flow_system / self.nbh
         m_flow_borehole = self.v_flow_borehole / 1000.0 * fluid.rho
         self.m_flow_borehole = m_flow_borehole

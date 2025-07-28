@@ -2,8 +2,8 @@ import time
 from pathlib import Path
 
 from District_system_class import GHEHPSystem
-from OpenGL_2D_class_GLFW import gl2D
 
+# from OpenGL_2D_class_GLFW import gl2D
 from ghedesigner.ghe.runner_code import read_data_from_json_file
 
 System = GHEHPSystem()
@@ -31,18 +31,18 @@ def main():
     System.createOutput()
     System.current_frame = 1
 
-    # Draw the house, set the window width and height
-    gl2d = gl2D(None, System.drawnetwork, width=2000, height=1500)
-    gl2d.setViewSize(-10, 50, -10, 80, False)
-    gl2d.glWait()  # wait for the user to close the window
+    # # Draw the house, set the window width and height
+    # gl2d = gl2D(None, System.drawnetwork, width=2000, height=1500)
+    # gl2d.setViewSize(-10, 50, -10, 80, False)
+    # gl2d.glWait()  # wait for the user to close the window
 
-    # Draw the house, set the window width and height
-    gl2d = gl2D(None, System.drawnetwork, width=2000, height=1500)
-    gl2d.setViewSize(-10, 50, -10, 80, False)
-    nframes = 59
-    gl2d.glStartAnimation(AnimationCallback, nframes, delaytime=0.1, reverse=False, repeat=False, reset=False)
+    # # Draw the house, set the window width and height
+    # gl2d = gl2D(None, System.drawnetwork, width=2000, height=1500)
+    # gl2d.setViewSize(-10, 50, -10, 80, False)
+    # nframes = 59
+    # gl2d.glStartAnimation(AnimationCallback, nframes, delaytime=0.1, reverse=False, repeat=False, reset=False)
 
-    gl2d.glWait()  # wait for the user to close the window
+    # gl2d.glWait()  # wait for the user to close the window
 
     print("Finished drawing 1")
 

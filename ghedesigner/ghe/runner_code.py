@@ -9,11 +9,11 @@ from ghedesigner.media import GHEFluid, Grout, Pipe, Soil
 
 # ✅ Start timing before simulation setup
 start_time = time.time()
-json_path = Path("C:/Users/nbast/GHEDesigner_fork/demos/find_design_bi_rectangle_single_u_tube.json")
+# json_path = Path("C:/Users/nbast/GHEDesigner_fork/demos/find_design_bi_rectangle_single_u_tube.json")
 
 
 def read_data_from_json_file():
-    f_path = Path(__file__).parent.parent.parent / "demos" / "find_design_bi_rectangle_single_u_tube.json"
+    f_path = Path(__file__).parent / "find_design_bi_rectangle_single_u_tube.json"
     with open(f_path) as f:
         data = json.load(f)
 

@@ -2,9 +2,10 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-from HersheyFont import HersheyFont
-from OpenGL.GL import *
-from OpenGL_2D_class_GLFW import gl2DArrow, gl2DCircle
+
+# from HersheyFont import HersheyFont
+# from OpenGL.GL import *
+# from OpenGL_2D_class_GLFW import gl2DArrow, gl2DCircle
 from pygfunction.boreholes import Borehole
 
 from ghedesigner.enums import BHPipeType
@@ -13,7 +14,7 @@ from ghedesigner.ghe.gfunction import calc_g_func_for_multiple_lengths
 from ghedesigner.ghe.ground_heat_exchangers import BaseGHE
 from ghedesigner.media import Grout, Pipe, Soil
 
-hf = HersheyFont()
+# hf = HersheyFont()
 
 
 class GHX:
@@ -388,8 +389,8 @@ class GHEHPSystem:
 
     # These functions are added for enabling animation
 
-    def DrawPicture(self):
-        self.drawnetwork()
+    # def DrawPicture(self):
+    #     self.drawnetwork()
 
     def PrepareNextAnimationFrameData(self, thisFrame, nframes):
         self.current_frame = (thisFrame + 1) * 145
@@ -728,162 +729,162 @@ class GHEHPSystem:
         self.AnimRepeat = False
         self.AnimReset = False
 
-    def drawnetwork(self):
-        pipes = self.pipes
-        nodes = self.nodes
-        zones = self.zones
-        GHXs = self.GHXs
+    # def drawnetwork(self):
+    #     pipes = self.pipes
+    #     nodes = self.nodes
+    #     zones = self.zones
+    #     GHXs = self.GHXs
 
-        # Drawing zones
-        glLineWidth(5)
-        glColor3f(0, 0, 0)
+    #     # Drawing zones
+    #     glLineWidth(5)
+    #     glColor3f(0, 0, 0)
 
-        for zone in zones:
-            glBegin(GL_LINE_LOOP)  # begin drawing connected lines
-            glVertex2f(zone.input.x, zone.input.y + 2)
-            glVertex2f(zone.input.x + 10, zone.input.y + 2)
-            glVertex2f(zone.input.x + 10, zone.input.y - 2)
-            glVertex2f(zone.input.x, zone.input.y - 2)
-            glEnd()
+    #     for zone in zones:
+    #         glBegin(GL_LINE_LOOP)  # begin drawing connected lines
+    #         glVertex2f(zone.input.x, zone.input.y + 2)
+    #         glVertex2f(zone.input.x + 10, zone.input.y + 2)
+    #         glVertex2f(zone.input.x + 10, zone.input.y - 2)
+    #         glVertex2f(zone.input.x, zone.input.y - 2)
+    #         glEnd()
 
-        # Drawing GHXs
-        glLineWidth(5)
-        glColor3f(1, 1, 1)
+    #     # Drawing GHXs
+    #     glLineWidth(5)
+    #     glColor3f(1, 1, 1)
 
-        for GHX in GHXs:
-            glBegin(GL_LINE_LOOP)  # begin drawing connected lines
-            glVertex2f(GHX.input.x, GHX.input.y + 2)
-            glVertex2f(GHX.input.x - 10, GHX.input.y + 2)
-            glVertex2f(GHX.input.x - 10, GHX.input.y - 2)
-            glVertex2f(GHX.input.x, GHX.input.y - 2)
-            glEnd()
+    #     for GHX in GHXs:
+    #         glBegin(GL_LINE_LOOP)  # begin drawing connected lines
+    #         glVertex2f(GHX.input.x, GHX.input.y + 2)
+    #         glVertex2f(GHX.input.x - 10, GHX.input.y + 2)
+    #         glVertex2f(GHX.input.x - 10, GHX.input.y - 2)
+    #         glVertex2f(GHX.input.x, GHX.input.y - 2)
+    #         glEnd()
 
-        # Drawing pipes
-        glColor3f(0, 0, 1)
-        glLineWidth(3)
+    #     # Drawing pipes
+    #     glColor3f(0, 0, 1)
+    #     glLineWidth(3)
 
-        for pipe in pipes:
-            if pipe.type == "1way":
-                glColor3f(0, 0, 1)
-            else:
-                glColor3f(0, 1, 0)
+    #     for pipe in pipes:
+    #         if pipe.type == "1way":
+    #             glColor3f(0, 0, 1)
+    #         else:
+    #             glColor3f(0, 1, 0)
 
-            glBegin(GL_LINES)  # begin drawing connected lines
-            glVertex2f(pipe.input.x, pipe.input.y)
-            glVertex2f(pipe.output.x, pipe.output.y)
-            glEnd()
+    #         glBegin(GL_LINES)  # begin drawing connected lines
+    #         glVertex2f(pipe.input.x, pipe.input.y)
+    #         glVertex2f(pipe.output.x, pipe.output.y)
+    #         glEnd()
 
-        # Drawing arrows
-        glLineWidth(3)
-        for pipe in pipes:
-            if pipe.type == "1way":
-                glColor3f(0, 0, 1)
-                xtip, ytip = pipe.output.x, pipe.output.y
-                xstart, ystart = pipe.input.x, pipe.input.y
-                angle = np.arctan2(ytip - ystart, xtip - xstart) * 180 / np.pi
+    #     # Drawing arrows
+    #     glLineWidth(3)
+    #     for pipe in pipes:
+    #         if pipe.type == "1way":
+    #             glColor3f(0, 0, 1)
+    #             xtip, ytip = pipe.output.x, pipe.output.y
+    #             xstart, ystart = pipe.input.x, pipe.input.y
+    #             angle = np.arctan2(ytip - ystart, xtip - xstart) * 180 / np.pi
 
-            else:
-                glColor3f(0, 1, 0)
-                xtip, ytip = pipe.output.x, pipe.output.y
-                xstart, ystart = pipe.input.x, pipe.input.y
-                angle = np.arctan2(ytip - ystart, xtip - xstart) * 180 / np.pi
-            gl2DArrow(xtip, ytip, size=1, angleDeg=angle, widthDeg=30, toCenter=False, fill=True)
+    #         else:
+    #             glColor3f(0, 1, 0)
+    #             xtip, ytip = pipe.output.x, pipe.output.y
+    #             xstart, ystart = pipe.input.x, pipe.input.y
+    #             angle = np.arctan2(ytip - ystart, xtip - xstart) * 180 / np.pi
+    #         gl2DArrow(xtip, ytip, size=1, angleDeg=angle, widthDeg=30, toCenter=False, fill=True)
 
-        # Drawing nodes
-        glLineWidth(3)
-        radius = 1
-        for node in nodes:
-            if node.type == "mixing":
-                glColor3f(1, 0, 0)
-            elif node.type == "simple":
-                glColor3f(0, 1, 0)
-            else:
-                glColor3f(0, 0, 1)
+    #     # Drawing nodes
+    #     glLineWidth(3)
+    #     radius = 1
+    #     for node in nodes:
+    #         if node.type == "mixing":
+    #             glColor3f(1, 0, 0)
+    #         elif node.type == "simple":
+    #             glColor3f(0, 1, 0)
+    #         else:
+    #             glColor3f(0, 0, 1)
 
-            gl2DCircle(node.x, node.y, radius, fill=True)
+    #         gl2DCircle(node.x, node.y, radius, fill=True)
 
-        thisrow = self.df.iloc[self.current_frame]
+    #     thisrow = self.df.iloc[self.current_frame]
 
-        # This is custom-coded and only works for 3ghe-6hp system. It is only used for changing colors of nodes.
-        cols = list(range(7)) + [10, 14]
-        t_min = self.df.iloc[:, cols].min().min()
-        t_max = self.df.iloc[:, cols].max().max()
+    #     # This is custom-coded and only works for 3ghe-6hp system. It is only used for changing colors of nodes.
+    #     cols = list(range(7)) + [10, 14]
+    #     t_min = self.df.iloc[:, cols].min().min()
+    #     t_max = self.df.iloc[:, cols].max().max()
 
-        for zone in self.zones:
-            row_num = zone.row_index
-            val = f"{thisrow[row_num]:.2f}"
-            x = zone.input.input.input.x + 1
-            y = zone.input.input.input.y + 1
-            glColor3f(1, 1, 1)
-            hf.drawText(str(val), x, y, scale=2, weight=1)
+    #     for zone in self.zones:
+    #         row_num = zone.row_index
+    #         val = f"{thisrow[row_num]:.2f}"
+    #         x = zone.input.input.input.x + 1
+    #         y = zone.input.input.input.y + 1
+    #         glColor3f(1, 1, 1)
+    #         hf.drawText(str(val), x, y, scale=2, weight=1)
 
-            val = thisrow[row_num]
-            color = temperature_to_rgb(val, t_min, t_max)
-            glColor3f(*color)
-            gl2DCircle(zone.input.input.input.x, zone.input.input.input.y, radius, fill=True)
+    #         val = thisrow[row_num]
+    #         color = temperature_to_rgb(val, t_min, t_max)
+    #         glColor3f(*color)
+    #         gl2DCircle(zone.input.input.input.x, zone.input.input.input.y, radius, fill=True)
 
-        for GHX in self.GHXs:
-            row_num = GHX.row_index
-            val = f"{thisrow[row_num]:.2f}"
-            x = GHX.input.input.input.x + 1
-            y = GHX.input.input.input.y + 1
-            glColor3f(1, 1, 1)
-            hf.drawText(str(val), x, y, scale=2, weight=1)
+    #     for GHX in self.GHXs:
+    #         row_num = GHX.row_index
+    #         val = f"{thisrow[row_num]:.2f}"
+    #         x = GHX.input.input.input.x + 1
+    #         y = GHX.input.input.input.y + 1
+    #         glColor3f(1, 1, 1)
+    #         hf.drawText(str(val), x, y, scale=2, weight=1)
 
-            val = thisrow[row_num]
-            color = temperature_to_rgb(val, t_min, t_max)
-            glColor3f(*color)
-            gl2DCircle(GHX.input.input.input.x, GHX.input.input.input.y, radius, fill=True)
+    #         val = thisrow[row_num]
+    #         color = temperature_to_rgb(val, t_min, t_max)
+    #         glColor3f(*color)
+    #         gl2DCircle(GHX.input.input.input.x, GHX.input.input.input.y, radius, fill=True)
 
-        glColor3f(1, 1, 1)
-        hf.drawText("Frame number: " + str(self.current_frame), 20, 75, center=True, scale=2, weight=1)
+    #     glColor3f(1, 1, 1)
+    #     hf.drawText("Frame number: " + str(self.current_frame), 20, 75, center=True, scale=2, weight=1)
 
-        # Writing text
-        glColor3f(1, 1, 1)
-        glLineWidth(3)
-        hf.drawText("3GHE-6HP SYSTEM", 20, -5, scale=2.5, slant=0.5, angle=0, center=True, weight=1)
+    #     # Writing text
+    #     glColor3f(1, 1, 1)
+    #     glLineWidth(3)
+    #     hf.drawText("3GHE-6HP SYSTEM", 20, -5, scale=2.5, slant=0.5, angle=0, center=True, weight=1)
 
 
-def temperature_to_rgb(temp, t_min, t_max):
-    """
-    Maps a temperature value to an RGB color.
-    Blue = t_min, Green = middle, Red = t_max
-    """
-    if t_min >= t_max:
-        raise ValueError("t_min must be less than t_max")
+# def temperature_to_rgb(temp, t_min, t_max):
+#     """
+#     Maps a temperature value to an RGB color.
+#     Blue = t_min, Green = middle, Red = t_max
+#     """
+#     if t_min >= t_max:
+#         raise ValueError("t_min must be less than t_max")
 
-    # Normalize temperature to range [0, 1]
-    t_norm = (temp - t_min) / (t_max - t_min)
+#     # Normalize temperature to range [0, 1]
+#     t_norm = (temp - t_min) / (t_max - t_min)
 
-    if t_norm <= 0.25:
-        # Blue (0,0,1) → Cyan (0,1,1)
-        ratio = t_norm / 0.25
-        r = 0.0
-        g = ratio
-        b = 1.0
+#     if t_norm <= 0.25:
+#         # Blue (0,0,1) → Cyan (0,1,1)
+#         ratio = t_norm / 0.25
+#         r = 0.0
+#         g = ratio
+#         b = 1.0
 
-    elif t_norm <= 0.5:
-        # Cyan (0,1,1) → Green (0,1,0)
-        ratio = (t_norm - 0.25) / 0.25
-        r = 0.0
-        g = 1.0
-        b = 1.0 - ratio
+#     elif t_norm <= 0.5:
+#         # Cyan (0,1,1) → Green (0,1,0)
+#         ratio = (t_norm - 0.25) / 0.25
+#         r = 0.0
+#         g = 1.0
+#         b = 1.0 - ratio
 
-    elif t_norm <= 0.75:
-        # Green (0,1,0) → Yellow (1,1,0)
-        ratio = (t_norm - 0.5) / 0.25
-        r = ratio
-        g = 1.0
-        b = 0.0
+#     elif t_norm <= 0.75:
+#         # Green (0,1,0) → Yellow (1,1,0)
+#         ratio = (t_norm - 0.5) / 0.25
+#         r = ratio
+#         g = 1.0
+#         b = 0.0
 
-    else:
-        # Yellow (1,1,0) → Red (1,0,0)
-        ratio = (t_norm - 0.75) / 0.25
-        r = 1.0
-        g = 1.0 - ratio
-        b = 0.0
+#     else:
+#         # Yellow (1,1,0) → Red (1,0,0)
+#         ratio = (t_norm - 0.75) / 0.25
+#         r = 1.0
+#         g = 1.0 - ratio
+#         b = 0.0
 
-    return (r, g, b)
+#     return (r, g, b)
 
 
 def FindItemByID(ID, objectlist):
