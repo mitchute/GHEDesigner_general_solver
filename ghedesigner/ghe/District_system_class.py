@@ -1,18 +1,12 @@
-import pandas as pd
 import numpy as np
-
-from ghedesigner.media import Grout, Pipe, Soil
+import pandas as pd
 from pygfunction.boreholes import Borehole
+
+from ghedesigner.enums import BHPipeType
 from ghedesigner.ghe.coaxial_borehole import get_bhe_object
 from ghedesigner.ghe.gfunction import calc_g_func_for_multiple_lengths
-from ghedesigner.enums import BHPipeType, TimestepType
-from ghedesigner.ghe.gfunction import GFunction, calc_g_func_for_multiple_lengths
 from ghedesigner.ghe.ground_heat_exchangers import BaseGHE
-
-from OpenGL.GL import *
-from OpenGL_2D_class_GLFW import gl2D, gl2DCircle, gl2DText,gl2DArrow, gl2DArc
-from HersheyFont import HersheyFont
-hf = HersheyFont()
+from ghedesigner.media import Grout, Pipe, Soil
 
 
 class GHX:
@@ -48,7 +42,7 @@ class GHX:
 
         # Computed properties
         self.bhe = None
-        self.r_b = None # borehole thermal resistance
+        self.r_b = None
         self.gFunction = None
         self.mass_flow_ghe = None
         self.mass_flow_ghe_borehole = None
@@ -65,14 +59,16 @@ class GHX:
         self.q_ghe = None
         self.t_exit = None
 
-    def generate_g_function_object(self, log_time, calc_g_func_for_multiple_lengths, h_values):
+    def generate_g_function_object(self, log_time, calc_g_func_for_multiple_lengths):
         self.r_b = self.bhe.calc_effective_borehole_resistance()
         self.depth = self.bhe.b.D
-        self.mass_flow_ghe_borehole_design = self.mass_flow_ghe_design/self.nbh
+        self.mass_flow_ghe_borehole_design = self.mass_flow_ghe_design / self.nbh
         h_values = [self.height]
-        coordinates_ghe = [(i * self.row_spacing, j * self.row_spacing) for i in range(int(self.n_rows)) for j in range(int(self.n_cols))]
+        coordinates_ghe = [(i * self.row_spacing, j * self.row_spacing) for i in range(int(self.n_rows)) for j in
+                           range(int(self.n_cols))]
         self.gFunction = calc_g_func_for_multiple_lengths(
-            self.row_spacing, h_values, self.r_b, self.depth, self.mass_flow_ghe_borehole_design, self.bhe_type, log_time,
+            self.row_spacing, h_values, self.r_b, self.depth, self.mass_flow_ghe_borehole_design, self.bhe_type,
+            log_time,
             coordinates_ghe, self.bhe.fluid, self.bhe.pipe, self.bhe.grout, self.bhe.soil
         )
         return self.gFunction
@@ -127,7 +123,8 @@ class GHX:
 
         return c_n
 
-    def compute_history_term(self, i, time_array, ts, two_pi_k, g, tg, H_n_ghe, total_values_ghe, q_ghe):
+    @staticmethod
+    def compute_history_term(i, time_array, ts, two_pi_k, g, tg, H_n_ghe, total_values_ghe, q_ghe):
         """
         Computes the history term H_n for this GHX at time index `i`.
         Updates self.total_values_ghe and self.H_n_ghe in place.
@@ -165,7 +162,7 @@ class GHX:
         row_index = self.row_index
         neighbour_index = self.downstream_device.row_index
 
-        row1[row_index] = (m_loop - mass_flow_ghe)*cp
+        row1[row_index] = (m_loop - mass_flow_ghe) * cp
         row1[row_index + 3] = mass_flow_ghe * cp
         row1[neighbour_index] = - m_loop * cp
 
@@ -185,6 +182,7 @@ class GHX:
         rows = [row1, row2, row3, row4]
         rhs = [rhs1, rhs2, rhs3, rhs4]
         return rows, rhs
+
 
 class Building:
     def __init__(self):
@@ -284,9 +282,9 @@ class Zone:
     def generate_zone_matrix_row(self, matrix_size, m_loop, cp, r1, r2):
         neighbour_index = self.downstream_device.row_index
         row = np.zeros(matrix_size)
-        row[self.row_index] = 1 - r1/(m_loop * cp)
+        row[self.row_index] = 1 - r1 / (m_loop * cp)
         row[neighbour_index] = -1
-        rhs = r2/(m_loop * cp)
+        rhs = r2 / (m_loop * cp)
         return row, rhs
 
 
@@ -302,7 +300,7 @@ class Node:
         self.diversion = None
 
 
-class Pipe:
+class DistPipe:
     def __init__(self):
         self.ID = None
         self.node_in_name = None
@@ -360,27 +358,7 @@ class GHEHPSystem:
         self.m_loop = None
 
         self.df = None
-        self.current_frame = 0
 
-    # Additions after this are made for animation
-        self.xmin = -10
-        self.xmax = 50
-        self.ymin = -10
-        self.ymax = 80
-        self.allowDistortion = False
-
-        self.numberOfAnimationFrames = 59
-        self.AnimDelayTime = 0.1
-        self.AnimReverse = False
-        self.AnimRepeat = False
-        self.AnimReset = False
-
-    # These functions are added for enabling animation
-
-    def DrawPicture(self):
-        self.drawnetwork()
-    def PrepareNextAnimationFrameData(self, thisFrame, nframes):
-        self.current_frame = (thisFrame + 1) * 145
     def ProcessFileData(self, data):
         self.read_GHEHPSystem_data(data)
 
@@ -392,7 +370,6 @@ class GHEHPSystem:
 
             if keyword == 'title':
                 self.title = cells[1].replace("'", "")
-
 
             if keyword == 'ghx':
                 thisghx = GHX()
@@ -432,7 +409,6 @@ class GHEHPSystem:
                 next_matrix_line += 1
                 self.zones.append(thiszone)
 
-
             if keyword == 'node':
                 thisnode = Node()
                 thisnode.ID = str(cells[1])
@@ -443,7 +419,7 @@ class GHEHPSystem:
                 self.nodes.append(thisnode)
 
             if keyword == 'pipe':
-                thispipe = Pipe()
+                thispipe = DistPipe()
                 thispipe.ID = str(cells[1])
                 thispipe.type = str(cells[2])
                 thispipe.node_in_name = str(cells[3])
@@ -498,27 +474,27 @@ class GHEHPSystem:
             GHX.nbh = GHX.n_rows * GHX.n_cols
             GHX.mass_flow_ghe_borehole_design = GHX.mass_flow_ghe_design / GHX.nbh
             GHX.bhe = get_bhe_object(GHX.bhe_type, GHX.mass_flow_ghe_borehole_design, GHX.fluid, GHX.borehole,
-                                      GHX.pipe, GHX.grout, GHX.soil)
+                                     GHX.pipe, GHX.grout, GHX.soil)
             GHX.bhe_eq = GHX.bhe.to_single()
             GHX.bhe_eq.calc_sts_g_functions()
             ts = GHX.bhe_eq.t_s
             cp = GHX.bhe.fluid.cp
             tg = GHX.bhe.soil.ugt
             borehole.H = GHX.height
-            h_values = [borehole.H]
-            self.gFunction = GHX.generate_g_function_object(self.log_time, calc_g_func_for_multiple_lengths, h_values)
+            self.gFunction = GHX.generate_g_function_object(self.log_time, calc_g_func_for_multiple_lengths)
             self.g, _ = GHX.grab_g_function(self.log_time)
             self.c_n = GHX.calculation_of_ghe_constant_c_n(self.g, ts, time_array, n_timesteps)
 
             # Initializing the values
             for GHX in self.GHXs:
-                GHX.H_n_ghe, GHX.total_values_ghe, GHX.q_ghe = np.full((n_timesteps), tg), np.zeros(n_timesteps), np.zeros(n_timesteps)
+                GHX.H_n_ghe, GHX.total_values_ghe, GHX.q_ghe = np.full(n_timesteps, tg), np.zeros(
+                    n_timesteps), np.zeros(n_timesteps)
 
             # Assigning indices to zones
             for idx, zone in enumerate(self.zones):
                 zone.index = idx
 
-        # Initializing t_eft, t__mena, q_ghe, t_exit
+            # Initializing t_eft, t__mena, q_ghe, t_exit
             for zone in self.zones:
                 zone.t_eft = np.full(n_timesteps, tg)
 
@@ -528,18 +504,18 @@ class GHEHPSystem:
                 GHX.q_ghe = np.zeros(n_timesteps)
                 GHX.t_exit = np.full(n_timesteps, tg)
 
-        # Assigning row_indices
+            # Assigning row_indices
             for k, zone in enumerate(self.zones):
                 zone.row_index = k
             for k, GHX in enumerate(self.GHXs):
-                GHX.row_index = len(self.zones)+k*4
+                GHX.row_index = len(self.zones) + k * 4
 
-        for i in range(1, n_timesteps):   # loop over all timestep
+        for i in range(1, n_timesteps):  # loop over all timestep
             matrix_rows = []
             matrix_rhs = []
             total_hp_flow = 0
             for zone in self.zones:
-                t_eft = zone.t_eft[i-1]
+                t_eft = zone.t_eft[i - 1]
                 zone.df_zone = zone.loads_file
                 q_net_htg = zone.q_net_htg()
                 m_zone = zone.zone_mass_flow_rate(t_eft, q_net_htg, i)
@@ -562,7 +538,8 @@ class GHEHPSystem:
                 mass_flow_ghe = m_loop * split_ratio
                 g = self.g
                 c_n = self.c_n[i]
-                H_n_ghe = GHX.compute_history_term(i, time_array, ts, two_pi_k, g, tg, GHX.H_n_ghe, GHX.total_values_ghe, q_ghe)
+                H_n_ghe = GHX.compute_history_term(i, time_array, ts, two_pi_k, g, tg, GHX.H_n_ghe,
+                                                   GHX.total_values_ghe, q_ghe)
                 rows, rhs_values = GHX.generate_GHX_matrix_row(matrix_size, m_loop, mass_flow_ghe, cp, H_n_ghe, c_n)
                 for row, rhs in zip(rows, rhs_values):
                     matrix_rows.append(row)
@@ -626,8 +603,8 @@ class GHEHPSystem:
     def UpdateConnections(self):
 
         for pipe in self.pipes:
-            pipe.input = FindItemByID(pipe.node_in_name, self.nodes)
-            pipe.output = FindItemByID(pipe.node_out_name, self.nodes)
+            pipe.input = find_item_by_id(pipe.node_in_name, self.nodes)
+            pipe.output = find_item_by_id(pipe.node_out_name, self.nodes)
             if pipe.type == "1way":
                 pipe.input.output = pipe
                 pipe.output.input = pipe
@@ -636,17 +613,17 @@ class GHEHPSystem:
                 pipe.output.input = pipe
 
         for zone in self.zones:
-            zone.HP = FindItemByID(zone.HPmodel, self.HPmodels)
-            zone.input = FindItemByID(zone.nodeID, self.nodes)
+            zone.HP = find_item_by_id(zone.HPmodel, self.HPmodels)
+            zone.input = find_item_by_id(zone.nodeID, self.nodes)
             zone.input.output = zone
 
         for building in self.buildings:
             for zoneID in building.zoneIDs:
-                zone = FindItemByID(zoneID, self.zones)
+                zone = find_item_by_id(zoneID, self.zones)
                 building.zones.append(zone)
 
         for GHX in self.GHXs:
-            GHX.input = FindItemByID(GHX.nodeID, self.nodes)
+            GHX.input = find_item_by_id(GHX.nodeID, self.nodes)
             GHX.input.output = GHX
 
         for GHX in self.GHXs:
@@ -670,7 +647,7 @@ class GHEHPSystem:
             GHX.upstream_device = device
             device.downstream_device = GHX
 
-        #find the upstream device
+        # find the upstream device
 
         for zone in self.zones:
             # find the first upstream mixing node
@@ -691,177 +668,8 @@ class GHEHPSystem:
             zone.upstream_device = device
             device.downstream_device = zone
 
-        self.xmin = -10
-        self.xmax = 50
-        self.ymin = -10
-        self.ymax = 80
-        self.allowDistortion = False
 
-        self.numberOfAnimationFrames = 59
-        self.AnimDelayTime  = 0.1
-        self.AnimReverse = False
-        self.AnimRepeat = False
-        self.AnimReset = False
-
-    def drawnetwork(self):
-        pipes = self.pipes
-        nodes = self.nodes
-        zones = self.zones
-        GHXs = self.GHXs
-
-        # Drawing zones
-        glLineWidth(5)
-        glColor3f(0, 0, 0)
-
-        for zone in zones:
-            glBegin(GL_LINE_LOOP)  # begin drawing connected lines
-            glVertex2f(zone.input.x, zone.input.y + 2)
-            glVertex2f(zone.input.x + 10, zone.input.y + 2)
-            glVertex2f(zone.input.x + 10, zone.input.y - 2)
-            glVertex2f(zone.input.x, zone.input.y - 2)
-            glEnd()
-
-        # Drawing GHXs
-        glLineWidth(5)
-        glColor3f(1, 1, 1)
-
-        for GHX in GHXs:
-            glBegin(GL_LINE_LOOP)  # begin drawing connected lines
-            glVertex2f(GHX.input.x, GHX.input.y + 2)
-            glVertex2f(GHX.input.x - 10, GHX.input.y + 2)
-            glVertex2f(GHX.input.x - 10, GHX.input.y - 2)
-            glVertex2f(GHX.input.x, GHX.input.y - 2)
-            glEnd()
-
-        # Drawing pipes
-        glColor3f(0, 0, 1)
-        glLineWidth(3)
-
-        for pipe in pipes:
-            if pipe.type == "1way":
-                glColor3f(0,0,1)
-            else:
-                glColor3f(0,1,0)
-
-            glBegin(GL_LINES)  # begin drawing connected lines
-            glVertex2f(pipe.input.x, pipe.input.y)
-            glVertex2f(pipe.output.x, pipe.output.y)
-            glEnd()
-
-        # Drawing arrows
-        glLineWidth(3)
-        for pipe in pipes:
-            if pipe.type == "1way":
-                glColor3f(0, 0, 1)
-                xtip, ytip = pipe.output.x, pipe.output.y
-                xstart, ystart = pipe.input.x, pipe.input.y
-                angle = np.arctan2(ytip - ystart, xtip - xstart) * 180 / np.pi
-
-            else:
-                glColor3f(0, 1, 0)
-                xtip, ytip = pipe.output.x, pipe.output.y
-                xstart, ystart = pipe.input.x, pipe.input.y
-                angle = np.arctan2(ytip - ystart, xtip - xstart) * 180 / np.pi
-            gl2DArrow(xtip, ytip, size=1, angleDeg=angle, widthDeg=30, toCenter=False, fill=True)
-
-        # Drawing nodes
-        glLineWidth(3)
-        radius = 1
-        for node in nodes:
-            if node.type == "mixing":
-                glColor3f(1, 0, 0)
-            elif node.type == "simple":
-                glColor3f(0,1, 0)
-            else:
-                glColor3f(0, 0, 1)
-
-            gl2DCircle(node.x, node.y, radius, fill=True)
-
-        thisrow = self.df.iloc[self.current_frame]
-
-        # This is custom-coded and only works for 3ghe-6hp system. It is only used for changing colors of nodes.
-        cols = list(range(0, 7)) + [10, 14]
-        t_min = self.df.iloc[:, cols].min().min()
-        t_max = self.df.iloc[:, cols].max().max()
-
-        for zone in self.zones:
-            row_num = zone.row_index
-            val = f"{thisrow[row_num]:.2f}"
-            x = zone.input.input.input.x + 1
-            y = zone.input.input.input.y + 1
-            glColor3f(1, 1, 1)
-            hf.drawText(str(val), x, y, scale=2, weight=1)
-
-            val = thisrow[row_num]
-            color = temperature_to_rgb(val, t_min, t_max)
-            glColor3f(*color)
-            gl2DCircle(zone.input.input.input.x, zone.input.input.input.y, radius, fill=True)
-
-        for GHX in self.GHXs:
-            row_num = GHX.row_index
-            val = f"{thisrow[row_num]:.2f}"
-            x = GHX.input.input.input.x + 1
-            y = GHX.input.input.input.y + 1
-            glColor3f(1, 1, 1)
-            hf.drawText(str(val), x, y, scale=2, weight=1)
-
-            val = thisrow[row_num]
-            color = temperature_to_rgb(val, t_min, t_max)
-            glColor3f(*color)
-            gl2DCircle(GHX.input.input.input.x, GHX.input.input.input.y, radius, fill=True)
-
-        glColor3f(1, 1, 1)
-        hf.drawText("Frame number: " + str(self.current_frame), 20, 75, center=True, scale=2, weight=1)
-
-        # Writing text
-        glColor3f(1, 1, 1)
-        glLineWidth(3)
-        hf.drawText("3GHE-6HP SYSTEM", 20, -5, scale=2.5, slant=0.5, angle=0, center=True, weight=1)
-
-
-def temperature_to_rgb(temp, t_min, t_max):
-    """
-    Maps a temperature value to an RGB color.
-    Blue = t_min, Green = middle, Red = t_max
-    """
-    if t_min >= t_max:
-        raise ValueError("t_min must be less than t_max")
-
-    # Normalize temperature to range [0, 1]
-    t_norm = (temp - t_min) / (t_max - t_min)
-
-    if t_norm <= 0.25:
-        # Blue (0,0,1) → Cyan (0,1,1)
-        ratio = t_norm / 0.25
-        r = 0.0
-        g = ratio
-        b = 1.0
-
-    elif t_norm <= 0.5:
-        # Cyan (0,1,1) → Green (0,1,0)
-        ratio = (t_norm - 0.25) / 0.25
-        r = 0.0
-        g = 1.0
-        b = 1.0 - ratio
-
-    elif t_norm <= 0.75:
-        # Green (0,1,0) → Yellow (1,1,0)
-        ratio = (t_norm - 0.5) / 0.25
-        r = ratio
-        g = 1.0
-        b = 0.0
-
-    else:
-        # Yellow (1,1,0) → Red (1,0,0)
-        ratio = (t_norm - 0.75) / 0.25
-        r = 1.0
-        g = 1.0 - ratio
-        b = 0.0
-
-    return (r, g, b)
-
-
-def FindItemByID(ID, objectlist):
+def find_item_by_id(ID, objectlist):
     # search a list of objects to find one with a particular name
     # of course, the objects must have a "name" member
     for item in objectlist:  # all objects in the list
@@ -869,13 +677,3 @@ def FindItemByID(ID, objectlist):
             return item  # then return this one
     # next item
     return None  # couldn't find it
-
-
-
-
-
-
-
-
-
-
