@@ -1,18 +1,18 @@
 # This module is developed to enable ghedesigner to handle multiple ground heat exchanger and heat pump layouts. Most
 # part of the code is custom-built for 3ghe-6hp layout.
 
-import pandas as pd
 from pathlib import Path
-from ghedesigner.ghe.gfunction import calc_g_func_for_multiple_lengths
-from scipy.interpolate import interp1d
-import numpy as np
-from ghedesigner.enums import BHPipeType
-from pygfunction.boreholes import Borehole
-from ghedesigner.media import Grout, Pipe, Soil
-from ghedesigner.ghe.simulation import SimulationParameters
-from ghedesigner.ghe.coaxial_borehole import get_bhe_object
-from ghedesigner.constants import VERSION
 
+import numpy as np
+import pandas as pd
+from pygfunction.boreholes import Borehole
+from scipy.interpolate import interp1d
+
+from ghedesigner.enums import BHPipeType
+from ghedesigner.ghe.coaxial_borehole import get_bhe_object
+from ghedesigner.ghe.gfunction import calc_g_func_for_multiple_lengths
+from ghedesigner.ghe.simulation import SimulationParameters
+from ghedesigner.media import Grout, Pipe, Soil
 
 repo_root = Path(__file__).resolve().parents[2]
 file_path_hp_loads = repo_root / "buildingloads" / "MultipleGHE-HP_heatpumploads_DULUTH_3ghe-6hp.csv"
@@ -25,7 +25,7 @@ selected_case = "Case: 1-pipe"
 def read_hp_loads(hp_loads_path):
     """Reads HP loads from CSVs with MultiIndex columns."""
     df1 = pd.read_csv(hp_loads_path, header=[0, 1, 2, 3])
-    df1.columns = pd.MultiIndex.from_tuples([(int(l1), int(l2), int(l3),  l4) for l1, l2, l3, l4 in df1.columns])
+    df1.columns = pd.MultiIndex.from_tuples([(int(l1), int(l2), int(l3), l4) for l1, l2, l3, l4 in df1.columns])
 
     return df1
 
@@ -56,7 +56,6 @@ n = time_array_size()
 
 def read_case_data(cases_path, selected_configuration: str, selected_case: str):
     if selected_configuration == "3ghe-6hp_1-pipe":
-
         """Reads selected case data and extracts parameters."""
         df_cases = pd.read_csv(cases_path)
         case_data = df_cases[df_cases["Case"] == selected_case].iloc[0]
@@ -68,10 +67,13 @@ def read_case_data(cases_path, selected_configuration: str, selected_case: str):
         b_spacing = case_data["b_spacing"]
 
         # Heat pump design flowrates
-        (m_hp1_design, m_hp2_design, m_hp3_design,
-        m_hp4_design, m_hp5_design, m_hp6_design) = (
-        case_data["m_hp1"], case_data["m_hp2"], case_data["m_hp3"],
-        case_data["m_hp4"], case_data["m_hp5"], case_data["m_hp6"]
+        (m_hp1_design, m_hp2_design, m_hp3_design, m_hp4_design, m_hp5_design, m_hp6_design) = (
+            case_data["m_hp1"],
+            case_data["m_hp2"],
+            case_data["m_hp3"],
+            case_data["m_hp4"],
+            case_data["m_hp5"],
+            case_data["m_hp6"],
         )
 
         # Boreholes per GHE and GHE flowrates
@@ -80,33 +82,89 @@ def read_case_data(cases_path, selected_configuration: str, selected_case: str):
 
         # Single HP values
         (m_hp1_single_as, m_hp2_single_as, m_hp3_single_as, m_hp_single_wtw) = (
-            case_data["m_hp1_single_WTA"], case_data["m_hp2_single_WTA"],
-            case_data["m_hp3_single_WTA"], case_data["m_hp_single_WTW"]
+            case_data["m_hp1_single_WTA"],
+            case_data["m_hp2_single_WTA"],
+            case_data["m_hp3_single_WTA"],
+            case_data["m_hp_single_WTW"],
         )
 
-        return (n_rows1, n_cols1, n_rows2, n_cols2, n_rows3, n_cols3, b_spacing,
-                m_hp1_design, m_hp2_design, m_hp3_design, m_hp4_design, m_hp5_design, m_hp6_design,
-                nbh1, nbh2, nbh3, m_ghe1, m_ghe2, m_ghe3,
-                m_hp1_single_as, m_hp2_single_as, m_hp3_single_as, m_hp_single_wtw)
+        return (
+            n_rows1,
+            n_cols1,
+            n_rows2,
+            n_cols2,
+            n_rows3,
+            n_cols3,
+            b_spacing,
+            m_hp1_design,
+            m_hp2_design,
+            m_hp3_design,
+            m_hp4_design,
+            m_hp5_design,
+            m_hp6_design,
+            nbh1,
+            nbh2,
+            nbh3,
+            m_ghe1,
+            m_ghe2,
+            m_ghe3,
+            m_hp1_single_as,
+            m_hp2_single_as,
+            m_hp3_single_as,
+            m_hp_single_wtw,
+        )
     else:
         print("Configuration not recognized")
 
 
 if selected_configuration == "3ghe-6hp_1-pipe":
-    (n_rows1, n_cols1, n_rows2, n_cols2, n_rows3, n_cols3, b_spacing, m_hp1_design, m_hp2_design, m_hp3_design,
-    m_hp4_design, m_hp5_design, m_hp6_design, nbh1, nbh2, nbh3, m_ghe1, m_ghe2, m_ghe3, m_hp1_single_as, m_hp2_single_as,
-    m_hp3_single_as, m_hp_single_wtw) = (read_case_data(file_path_cases, selected_configuration, selected_case))
+    (
+        n_rows1,
+        n_cols1,
+        n_rows2,
+        n_cols2,
+        n_rows3,
+        n_cols3,
+        b_spacing,
+        m_hp1_design,
+        m_hp2_design,
+        m_hp3_design,
+        m_hp4_design,
+        m_hp5_design,
+        m_hp6_design,
+        nbh1,
+        nbh2,
+        nbh3,
+        m_ghe1,
+        m_ghe2,
+        m_ghe3,
+        m_hp1_single_as,
+        m_hp2_single_as,
+        m_hp3_single_as,
+        m_hp_single_wtw,
+    ) = read_case_data(file_path_cases, selected_configuration, selected_case)
 
 else:
     print("Configuration not recognized")
 
 
 def generate_g_functions_for_all_ghe(
-    bhe1, bhe2, bhe3,
-    m_ghe1_borehole, m_ghe2_borehole, m_ghe3_borehole,
-    bhe_type, log_time, b_spacing,
-    n_rows1, n_cols1, n_rows2, n_cols2, n_rows3, n_cols3,
-    calc_g_func_for_multiple_lengths
+    bhe1,
+    bhe2,
+    bhe3,
+    m_ghe1_borehole,
+    m_ghe2_borehole,
+    m_ghe3_borehole,
+    bhe_type,
+    log_time,
+    b_spacing,
+    n_rows1,
+    n_cols1,
+    n_rows2,
+    n_cols2,
+    n_rows3,
+    n_cols3,
+    calc_g_func_for_multiple_lengths,
 ):
     h_values = [100.0]  # fixed h value
 
@@ -120,25 +178,54 @@ def generate_g_functions_for_all_ghe(
     coordinates_ghe3 = [(i * b_spacing, j * b_spacing) for i in range(n_rows3) for j in range(n_cols3)]
 
     gFunction1 = calc_g_func_for_multiple_lengths(
-        b_spacing, h_values, r_b1, depth, m_ghe1_borehole, bhe_type, log_time,
-        coordinates_ghe1, bhe1.fluid, bhe1.pipe, bhe1.grout, bhe1.soil
+        b_spacing,
+        h_values,
+        r_b1,
+        depth,
+        m_ghe1_borehole,
+        bhe_type,
+        log_time,
+        coordinates_ghe1,
+        bhe1.fluid,
+        bhe1.pipe,
+        bhe1.grout,
+        bhe1.soil,
     )
 
     gFunction2 = calc_g_func_for_multiple_lengths(
-        b_spacing, h_values, r_b2, depth, m_ghe2_borehole, bhe_type, log_time,
-        coordinates_ghe2, bhe2.fluid, bhe2.pipe, bhe2.grout, bhe2.soil
+        b_spacing,
+        h_values,
+        r_b2,
+        depth,
+        m_ghe2_borehole,
+        bhe_type,
+        log_time,
+        coordinates_ghe2,
+        bhe2.fluid,
+        bhe2.pipe,
+        bhe2.grout,
+        bhe2.soil,
     )
 
     gFunction3 = calc_g_func_for_multiple_lengths(
-        b_spacing, h_values, r_b3, depth, m_ghe3_borehole, bhe_type, log_time,
-        coordinates_ghe3, bhe3.fluid, bhe3.pipe, bhe3.grout, bhe3.soil
+        b_spacing,
+        h_values,
+        r_b3,
+        depth,
+        m_ghe3_borehole,
+        bhe_type,
+        log_time,
+        coordinates_ghe3,
+        bhe3.fluid,
+        bhe3.pipe,
+        bhe3.grout,
+        bhe3.soil,
     )
 
     return gFunction1, gFunction2, gFunction3
 
 
 def calculation_of_ghe_constant_c_n(g1, g2, g3, ts, k_soil, rb1, rb2, rb3, time_array, n):
-
     """
     Calculate C_n values for three GHEs based on their g-functions.
 
@@ -171,9 +258,9 @@ def get_coeffs(param, df):
 
 def load_all_hp_coefficients():
     """
-        Reads the heat pump coefficients CSV and returns a dictionary of coefficient tuples
-        for all heating and cooling parameters.
-        """
+    Reads the heat pump coefficients CSV and returns a dictionary of coefficient tuples
+    for all heating and cooling parameters.
+    """
     file_path_hp_coefficients = repo_root / "HeatPumpData" / "HeatPumpCoefficients.csv"
     df = pd.read_csv(file_path_hp_coefficients).set_index("parameter")
 
@@ -194,6 +281,7 @@ def load_all_hp_coefficients():
 
     return hp_coefficients
 
+
 def get_net_htg_loads(df1):
     """Returns a tuple of 6 arrays for net heating loads of all HPs."""
     return (
@@ -205,6 +293,7 @@ def get_net_htg_loads(df1):
         df1.loc[:, (3, 2, 6, "HPHtgLd_W")].to_numpy(),
     )
 
+
 def get_hourly_h_c(i, df1):
     """Returns heating and cooling loads at time step i for all 6 HPs."""
     h = [
@@ -213,7 +302,7 @@ def get_hourly_h_c(i, df1):
         df1.loc[i, (2, 1, 3, "HPHtgLd_W")],
         df1.loc[i, (2, 2, 4, "HPHtgLd_W")],
         df1.loc[i, (3, 1, 5, "HPHtgLd_W")],
-        df1.loc[i, (3, 2, 6, "HPHtgLd_W")]
+        df1.loc[i, (3, 2, 6, "HPHtgLd_W")],
     ]
     c = [
         df1.loc[i, (1, 1, 1, "HPClgLd_W")],
@@ -221,7 +310,7 @@ def get_hourly_h_c(i, df1):
         df1.loc[i, (2, 1, 3, "HPClgLd_W")],
         0,
         df1.loc[i, (3, 1, 5, "HPClgLd_W")],
-        0
+        0,
     ]
     return np.array(h), np.array(c)
 
@@ -258,13 +347,7 @@ def calculate_r1_r2(t_eft, h, c, a_htg, b_htg, c_htg, a_clg, b_clg, c_clg):
     return r1, r2
 
 
-def calculate_hp_capacity(
-    t_eft,
-    c1_htg, c2_htg, c3_htg,
-    c1_clg, c2_clg, c3_clg,
-    m_design, m_single,
-    q_net_htg
-):
+def calculate_hp_capacity(t_eft, c1_htg, c2_htg, c3_htg, c1_clg, c2_clg, c3_clg, m_design, m_single, q_net_htg):
     """
     Returns the array of heat pump capacities for heating or cooling.
     """
@@ -279,14 +362,27 @@ def calculate_hp_capacity(
 
 
 def calculate_rtf_and_mass_flows(
-    q_net_htg, t_eft,
-    c1_htg, c2_htg, c3_htg,
-    c1_clg, c2_clg, c3_clg,
-    m_design, m_single,
-    m_hp1_design, m_hp2_design, m_hp3_design,
-    m_hp4_design, m_hp5_design, m_hp6_design,
-    nbh_ghe1, nbh_ghe2, nbh_ghe3, nbh_total,
-    beta=1.5
+    q_net_htg,
+    t_eft,
+    c1_htg,
+    c2_htg,
+    c3_htg,
+    c1_clg,
+    c2_clg,
+    c3_clg,
+    m_design,
+    m_single,
+    m_hp1_design,
+    m_hp2_design,
+    m_hp3_design,
+    m_hp4_design,
+    m_hp5_design,
+    m_hp6_design,
+    nbh_ghe1,
+    nbh_ghe2,
+    nbh_ghe3,
+    nbh_total,
+    beta=1.5,
 ):
     """
     Computes runtime fractions, heat pump mass flow rates, loop flow, and GHE flows.
@@ -306,20 +402,22 @@ def calculate_rtf_and_mass_flows(
     hp_capacity = np.where(q_net_htg > 0, capacity_htg, capacity_clg) * (m_design / m_single)
 
     # Compute run-time fraction (clip to [0, 1])
-    with np.errstate(divide='ignore', invalid='ignore'):
+    with np.errstate(divide="ignore", invalid="ignore"):
         rtf = np.abs(q_net_htg) / np.abs(hp_capacity)
         rtf = np.where(np.isnan(rtf), 0, rtf)
         rtf = np.clip(rtf, 0, 1)
 
     # Individual HP mass flow rates
-    m_dot = np.array([
-        m_hp1_design * rtf[0],
-        m_hp2_design * rtf[1],
-        m_hp3_design * rtf[2],
-        m_hp4_design * rtf[3],
-        m_hp5_design * rtf[4],
-        m_hp6_design * rtf[5]
-    ])
+    m_dot = np.array(
+        [
+            m_hp1_design * rtf[0],
+            m_hp2_design * rtf[1],
+            m_hp3_design * rtf[2],
+            m_hp4_design * rtf[3],
+            m_hp5_design * rtf[4],
+            m_hp6_design * rtf[5],
+        ]
+    )
 
     # Loop mass flow rate
     m_loop = beta * np.sum(m_dot)
@@ -333,12 +431,23 @@ def calculate_rtf_and_mass_flows(
 
 
 def compute_ghe_history_terms(
-    i, time_array, ts, two_pi_k,
-    q_ghe1, q_ghe2, q_ghe3,
-    g1, g2, g3,
+    i,
+    time_array,
+    ts,
+    two_pi_k,
+    q_ghe1,
+    q_ghe2,
+    q_ghe3,
+    g1,
+    g2,
+    g3,
     tg,
-    total_values_ghe1, total_values_ghe2, total_values_ghe3,
-    H_n_ghe1, H_n_ghe2, H_n_ghe3
+    total_values_ghe1,
+    total_values_ghe2,
+    total_values_ghe3,
+    H_n_ghe1,
+    H_n_ghe2,
+    H_n_ghe3,
 ):
     time_n = time_array[i]
 
@@ -368,50 +477,85 @@ def compute_ghe_history_terms(
 
 def solve_temperature_matrix(
     i,
-    r1_vals, r2_vals, m_loop, cp,
-    m_ghe1, m_ghe2, m_ghe3,
-    c_n_ghe1, c_n_ghe2, c_n_ghe3,
-    H_n_ghe1, H_n_ghe2, H_n_ghe3,
-    nbh_ghe1, nbh_ghe2, nbh_ghe3,
-    bhe1, bhe2, bhe3,
-    time_array, labels, units,
-    t, q_ghe1, q_ghe2, q_ghe3, results
+    r1_vals,
+    r2_vals,
+    m_loop,
+    cp,
+    m_ghe1,
+    m_ghe2,
+    m_ghe3,
+    c_n_ghe1,
+    c_n_ghe2,
+    c_n_ghe3,
+    H_n_ghe1,
+    H_n_ghe2,
+    H_n_ghe3,
+    nbh_ghe1,
+    nbh_ghe2,
+    nbh_ghe3,
+    bhe1,
+    bhe2,
+    bhe3,
+    time_array,
+    labels,
+    units,
+    t,
+    q_ghe1,
+    q_ghe2,
+    q_ghe3,
+    results,
 ):
     # Unpack r1 and r2
     r1_hp1, r1_hp2, r1_hp3, r1_hp4, r1_hp5, r1_hp6 = r1_vals
     r2_hp1, r2_hp2, r2_hp3, r2_hp4, r2_hp5, r2_hp6 = r2_vals
 
     # Assemble matrix A
-    A = np.array([
-        [1 - (r1_hp1 / (m_loop * cp)), -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 1 - (r1_hp2 / (m_loop * cp)), -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 1 - (r1_hp3 / (m_loop * cp)), -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 1 - (r1_hp4 / (m_loop * cp)), -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 1 - (r1_hp5 / (m_loop * cp)), -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 1 - (r1_hp6 / (m_loop * cp)), -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-
-        [0, 0, 0, 0, 0, 0, (m_loop - m_ghe1) * cp, -m_loop * cp, 0, 0, 0, 0, m_ghe1 * cp, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, c_n_ghe1[i], 0, 0],
-        [0, 0, 0, 0, 0, 0, -1, 0, 0, 2, 0, 0, -1, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, m_ghe1 * cp, 0, 0, 0, 0, 0, -m_ghe1 * cp, 0, 0, bhe1.b.H * nbh_ghe1, 0, 0],
-
-        [0, 0, 0, 0, 0, 0, 0, (m_loop - m_ghe2) * cp, -m_loop * cp, 0, 0, 0, 0, m_ghe2 * cp, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, c_n_ghe2[i], 0],
-        [0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 2, 0, 0, -1, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, m_ghe2 * cp, 0, 0, 0, 0, 0, -m_ghe2 * cp, 0, 0, bhe2.b.H * nbh_ghe2, 0],
-
-        [-m_loop * cp, 0, 0, 0, 0, 0, 0, 0, (m_loop - m_ghe3) * cp, 0, 0, 0, 0, 0, m_ghe3 * cp, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, c_n_ghe3[i]],
-        [0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 2, 0, 0, -1, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, m_ghe3 * cp, 0, 0, 0, 0, 0, -m_ghe3 * cp, 0, 0, bhe3.b.H * nbh_ghe3]
-    ])
+    A = np.array(
+        [
+            [1 - (r1_hp1 / (m_loop * cp)), -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 1 - (r1_hp2 / (m_loop * cp)), -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 1 - (r1_hp3 / (m_loop * cp)), -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 1 - (r1_hp4 / (m_loop * cp)), -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 1 - (r1_hp5 / (m_loop * cp)), -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 1 - (r1_hp6 / (m_loop * cp)), -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, (m_loop - m_ghe1) * cp, -m_loop * cp, 0, 0, 0, 0, m_ghe1 * cp, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, c_n_ghe1[i], 0, 0],
+            [0, 0, 0, 0, 0, 0, -1, 0, 0, 2, 0, 0, -1, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, m_ghe1 * cp, 0, 0, 0, 0, 0, -m_ghe1 * cp, 0, 0, bhe1.b.H * nbh_ghe1, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, (m_loop - m_ghe2) * cp, -m_loop * cp, 0, 0, 0, 0, m_ghe2 * cp, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, c_n_ghe2[i], 0],
+            [0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 2, 0, 0, -1, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, m_ghe2 * cp, 0, 0, 0, 0, 0, -m_ghe2 * cp, 0, 0, bhe2.b.H * nbh_ghe2, 0],
+            [-m_loop * cp, 0, 0, 0, 0, 0, 0, 0, (m_loop - m_ghe3) * cp, 0, 0, 0, 0, 0, m_ghe3 * cp, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, c_n_ghe3[i]],
+            [0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 2, 0, 0, -1, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, m_ghe3 * cp, 0, 0, 0, 0, 0, -m_ghe3 * cp, 0, 0, bhe3.b.H * nbh_ghe3],
+        ]
+    )
 
     # Vector B
-    B = np.array([
-        r2_hp1 / (m_loop * cp), r2_hp2 / (m_loop * cp), r2_hp3 / (m_loop * cp),
-        r2_hp4 / (m_loop * cp), r2_hp5 / (m_loop * cp), r2_hp6 / (m_loop * cp),
-        0, H_n_ghe1[i], 0, 0, 0, H_n_ghe2[i], 0, 0, 0, H_n_ghe3[i], 0, 0
-    ])
+    B = np.array(
+        [
+            r2_hp1 / (m_loop * cp),
+            r2_hp2 / (m_loop * cp),
+            r2_hp3 / (m_loop * cp),
+            r2_hp4 / (m_loop * cp),
+            r2_hp5 / (m_loop * cp),
+            r2_hp6 / (m_loop * cp),
+            0,
+            H_n_ghe1[i],
+            0,
+            0,
+            0,
+            H_n_ghe2[i],
+            0,
+            0,
+            0,
+            H_n_ghe3[i],
+            0,
+            0,
+        ]
+    )
 
     # Solve linear system
     X = np.linalg.solve(A, B)
@@ -432,19 +576,19 @@ def solve_temperature_matrix(
 
 class MultiGHEHP:
     def __init__(
-            self,
-            v_flow_system: float,
-            b_spacing: float,
-            bhe_type: BHPipeType,
-            fluid,
-            borehole: Borehole,
-            pipe: Pipe,
-            grout: Grout,
-            soil: Soil,
-            sim_params: SimulationParameters,
-            hourly_extraction_ground_loads: list,
-            field_type="N/A",
-            field_specifier="N/A",
+        self,
+        v_flow_system: float,
+        b_spacing: float,
+        bhe_type: BHPipeType,
+        fluid,
+        borehole: Borehole,
+        pipe: Pipe,
+        grout: Grout,
+        soil: Soil,
+        sim_params: SimulationParameters,
+        hourly_extraction_ground_loads: list,
+        field_type="N/A",
+        field_specifier="N/A",
     ) -> None:
         self.fieldType = field_type
         self.fieldSpecifier = field_specifier
@@ -460,7 +604,11 @@ class MultiGHEHP:
         self.loading = None
 
         # This is layout specific (My addition)
-        self.n_rows1, self.n_rows2, self.n_rows3 = n_rows1, n_rows2, n_rows3,
+        self.n_rows1, self.n_rows2, self.n_rows3 = (
+            n_rows1,
+            n_rows2,
+            n_rows3,
+        )
         self.n_cols1, self.n_cols2, self.n_cols3 = n_cols1, n_cols2, n_cols3
         self.nbh1, self.nbh2, self.nbh3 = nbh1, nbh2, nbh3
         self.m_ghe1, self.m_ghe2, self.m_ghe3 = m_ghe1, m_ghe2, m_ghe3
@@ -490,11 +638,23 @@ class MultiGHEHP:
         # Calculations of g-functions
 
         self.gFunction1, self.gFunction2, self.gFunction3 = generate_g_functions_for_all_ghe(
-            self.bhe1, self.bhe2, self.bhe3,
-            self.m_ghe1_borehole, self.m_ghe2_borehole, self.m_ghe3_borehole,
-            self.bhe_type, self.log_time, self.B_spacing,
-            self.n_rows1, self.n_cols1, self.n_rows2, self.n_cols2, self.n_rows3, self.n_cols3,
-            calc_g_func_for_multiple_lengths)
+            self.bhe1,
+            self.bhe2,
+            self.bhe3,
+            self.m_ghe1_borehole,
+            self.m_ghe2_borehole,
+            self.m_ghe3_borehole,
+            self.bhe_type,
+            self.log_time,
+            self.B_spacing,
+            self.n_rows1,
+            self.n_cols1,
+            self.n_rows2,
+            self.n_cols2,
+            self.n_rows3,
+            self.n_cols3,
+            calc_g_func_for_multiple_lengths,
+        )
 
         b_over_h1 = self.B_spacing / self.bhe1.b.H
         b_over_h2 = self.B_spacing / self.bhe2.b.H
@@ -508,17 +668,15 @@ class MultiGHEHP:
 
         ts = self.bhe1_eq.t_s  # (-)
         print(ts)
-        two_pi_k = 2*np.pi * self.bhe1.soil.k
+        two_pi_k = 2 * np.pi * self.bhe1.soil.k
         rb1 = self.bhe1.calc_effective_borehole_resistance()  # (m.K/W)
         rb2 = self.bhe2.calc_effective_borehole_resistance()  # (m.K/W)
         rb3 = self.bhe3.calc_effective_borehole_resistance()  # (m.K/W)
         k_soil = self.bhe1.soil.k
 
         self.c_n1, self.c_n2, self.c_n3 = calculation_of_ghe_constant_c_n(
-            self.g1, self.g2, self.g3,
-            ts, k_soil,
-            rb1, rb2, rb3,
-            time_array, n)
+            self.g1, self.g2, self.g3, ts, k_soil, rb1, rb2, rb3, time_array, n
+        )
 
     @staticmethod
     def combine_sts_lts(log_time_lts: list, g_lts: list, log_time_sts: list, g_sts: list) -> interp1d:
@@ -548,9 +706,7 @@ class MultiGHEHP:
         g_function, rb_value, _, _ = g_function_obj.g_function_interpolation(b_over_h)
 
         # Correct the g-function for borehole radius
-        g_function_corrected = g_function_obj.borehole_radius_correction(
-            g_function, rb_value, bhe_eq.b.r_b
-        )
+        g_function_corrected = g_function_obj.borehole_radius_correction(g_function, rb_value, bhe_eq.b.r_b)
 
         # Combine short and long time step g-functions
         g = self.combine_sts_lts(
@@ -572,10 +728,9 @@ class MultiGHEHP:
     def _simulate_detailed(self):
         # My part of code for multiple GHE systems begins here
         if selected_configuration == "3ghe-6hp_1-pipe":
-
             ts = self.bhe1_eq.t_s  # (-)
             tg = self.bhe1.soil.ugt  # (Celsius)
-            two_pi_k = 2*np.pi * self.bhe1.soil.k  # (W/m.K)
+            two_pi_k = 2 * np.pi * self.bhe1.soil.k  # (W/m.K)
 
             # Input of HP coefficients
             hp_coeffs = load_all_hp_coefficients()
@@ -610,8 +765,18 @@ class MultiGHEHP:
             total_values_ghe1, total_values_ghe2, total_values_ghe3 = np.zeros(n), np.zeros(n), np.zeros(n)
 
             # Initializing mass flow rates
-            (m_hp1_array, m_hp2_array, m_hp3_array, m_hp4_array, m_hp5_array, m_hp6_array, m_loop_array, m_ghe1_array,
-             m_ghe2_array, m_ghe3_array) = (np.zeros(n) for _ in range(10))
+            (
+                m_hp1_array,
+                m_hp2_array,
+                m_hp3_array,
+                m_hp4_array,
+                m_hp5_array,
+                m_hp6_array,
+                m_loop_array,
+                m_ghe1_array,
+                m_ghe2_array,
+                m_ghe3_array,
+            ) = (np.zeros(n) for _ in range(10))
 
             # Initializing temperatures
             t = np.full((n, 15), tg)
@@ -619,7 +784,8 @@ class MultiGHEHP:
 
             # Extracting net heating loads
             q_net_htg_hp1, q_net_htg_hp2, q_net_htg_hp3, q_net_htg_hp4, q_net_htg_hp5, q_net_htg_hp6 = (
-                get_net_htg_loads(df1))
+                get_net_htg_loads(df1)
+            )
 
             results = []
 
@@ -629,15 +795,36 @@ class MultiGHEHP:
             q_ghe2[0], q_ghe2[0], q_ghe3[0] = (0, 0, 0)
 
             labels = [
-                "T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8", "T9", "Tf_ghe1", "Tf_ghe2", "Tf_ghe3",
-                "T_ghe1_ext", "T_ghe2_ext", "T_ghe3_ext", "q_ghe1", "q_ghe2", "q_ghe3"
+                "T1",
+                "T2",
+                "T3",
+                "T4",
+                "T5",
+                "T6",
+                "T7",
+                "T8",
+                "T9",
+                "Tf_ghe1",
+                "Tf_ghe2",
+                "Tf_ghe3",
+                "T_ghe1_ext",
+                "T_ghe2_ext",
+                "T_ghe3_ext",
+                "q_ghe1",
+                "q_ghe2",
+                "q_ghe3",
             ]
             units = ["°C"] * 16 + ["W/m", "W/m", "W/m"]
 
             for i in range(1, n):
-                if (np.isclose(q_net_htg_hp1[i], 0) and np.isclose(q_net_htg_hp2[i], 0)
-                        and np.isclose(q_net_htg_hp3[i], 0) and np.isclose(q_net_htg_hp4[i], 0)
-                        and np.isclose(q_net_htg_hp5[i], 0) and np.isclose(q_net_htg_hp6[i], 0)):
+                if (
+                    np.isclose(q_net_htg_hp1[i], 0)
+                    and np.isclose(q_net_htg_hp2[i], 0)
+                    and np.isclose(q_net_htg_hp3[i], 0)
+                    and np.isclose(q_net_htg_hp4[i], 0)
+                    and np.isclose(q_net_htg_hp5[i], 0)
+                    and np.isclose(q_net_htg_hp6[i], 0)
+                ):
                     t[i, :] = t[i - 1, :]
                     q_ghe1[i], q_ghe2[i], q_ghe3[i] = (0, 0, 0)
 
@@ -674,18 +861,34 @@ class MultiGHEHP:
                 c3_clg = np.array([c3_hp1_clg, c3_hp2_clg, c3_hp3_clg, c3_hp4_clg, c3_hp5_clg, c3_hp6_clg])
 
                 m_design = np.array(
-                    [m_hp1_design, m_hp2_design, m_hp3_design, m_hp4_design, m_hp5_design, m_hp6_design])
+                    [m_hp1_design, m_hp2_design, m_hp3_design, m_hp4_design, m_hp5_design, m_hp6_design]
+                )
                 m_single = np.array(
-                    [m_hp1_single_as, m_hp_single_wtw, m_hp2_single_as, m_hp_single_wtw, m_hp3_single_as,
-                     m_hp_single_wtw])
+                    [
+                        m_hp1_single_as,
+                        m_hp_single_wtw,
+                        m_hp2_single_as,
+                        m_hp_single_wtw,
+                        m_hp3_single_as,
+                        m_hp_single_wtw,
+                    ]
+                )
 
                 q_net_htg = np.array(
-                    [q_net_htg_hp1[i], q_net_htg_hp2[i], q_net_htg_hp3[i], q_net_htg_hp4[i], q_net_htg_hp5[i],
-                     q_net_htg_hp6[i]])
+                    [
+                        q_net_htg_hp1[i],
+                        q_net_htg_hp2[i],
+                        q_net_htg_hp3[i],
+                        q_net_htg_hp4[i],
+                        q_net_htg_hp5[i],
+                        q_net_htg_hp6[i],
+                    ]
+                )
 
                 # Get capacity
-                hp_capacity = calculate_hp_capacity(t_eft, c1_htg, c2_htg, c3_htg, c1_clg, c2_clg, c3_clg, m_design,
-                                                    m_single, q_net_htg)
+                hp_capacity = calculate_hp_capacity(
+                    t_eft, c1_htg, c2_htg, c3_htg, c1_clg, c2_clg, c3_clg, m_design, m_single, q_net_htg
+                )
 
                 # Unpack
                 # hp1_capacity, hp2_capacity, hp3_capacity, hp4_capacity, hp5_capacity, hp6_capacity = hp_capacity
@@ -697,40 +900,100 @@ class MultiGHEHP:
                 # or else  I will always get rtf greater than 1.
 
                 rtf, m_dot, m_loop, m_ghe1, m_ghe2, m_ghe3 = calculate_rtf_and_mass_flows(
-                    q_net_htg, t_eft,
-                    c1_htg, c2_htg, c3_htg,
-                    c1_clg, c2_clg, c3_clg,
-                    m_design, m_single,
-                    m_hp1_design, m_hp2_design, m_hp3_design,
-                    m_hp4_design, m_hp5_design, m_hp6_design,
-                    nbh_ghe1, nbh_ghe2, nbh_ghe3, nbh_total
+                    q_net_htg,
+                    t_eft,
+                    c1_htg,
+                    c2_htg,
+                    c3_htg,
+                    c1_clg,
+                    c2_clg,
+                    c3_clg,
+                    m_design,
+                    m_single,
+                    m_hp1_design,
+                    m_hp2_design,
+                    m_hp3_design,
+                    m_hp4_design,
+                    m_hp5_design,
+                    m_hp6_design,
+                    nbh_ghe1,
+                    nbh_ghe2,
+                    nbh_ghe3,
+                    nbh_total,
                 )
 
                 m_hp1, m_hp2, m_hp3, m_hp4, m_hp5, m_hp6 = m_dot
 
                 # Storing these values
                 values = [m_hp1, m_hp2, m_hp3, m_hp4, m_hp5, m_hp6, m_loop, m_ghe1, m_ghe2, m_ghe3]
-                arrays = [m_hp1_array, m_hp2_array, m_hp3_array, m_hp4_array, m_hp5_array, m_hp6_array,
-                          m_loop_array, m_ghe1_array, m_ghe2_array, m_ghe3_array]
+                arrays = [
+                    m_hp1_array,
+                    m_hp2_array,
+                    m_hp3_array,
+                    m_hp4_array,
+                    m_hp5_array,
+                    m_hp6_array,
+                    m_loop_array,
+                    m_ghe1_array,
+                    m_ghe2_array,
+                    m_ghe3_array,
+                ]
 
                 for arr, val in zip(arrays, values):
                     arr[i] = val
                 time_n = time_array[i]
 
                 compute_ghe_history_terms(
-                    i, time_array, ts, two_pi_k,
-                    q_ghe1, q_ghe2, q_ghe3,
-                    g1, g2, g3,
+                    i,
+                    time_array,
+                    ts,
+                    two_pi_k,
+                    q_ghe1,
+                    q_ghe2,
+                    q_ghe3,
+                    g1,
+                    g2,
+                    g3,
                     tg,
-                    total_values_ghe1, total_values_ghe2, total_values_ghe3,
-                    H_n_ghe1, H_n_ghe2, H_n_ghe3
+                    total_values_ghe1,
+                    total_values_ghe2,
+                    total_values_ghe3,
+                    H_n_ghe1,
+                    H_n_ghe2,
+                    H_n_ghe3,
                 )
 
                 # from multiple_ghe_hp_addition import solve_temperature_matrix
                 X = solve_temperature_matrix(
-                    i, r1, r2, m_loop, cp, m_ghe1, m_ghe2, m_ghe3, c_n_ghe1, c_n_ghe2, c_n_ghe3, H_n_ghe1, H_n_ghe2,
-                    H_n_ghe3, nbh_ghe1, nbh_ghe2, nbh_ghe3, self.bhe1, self.bhe2, self.bhe3, time_array, labels, units,
-                    t, q_ghe1, q_ghe2, q_ghe3, results)
+                    i,
+                    r1,
+                    r2,
+                    m_loop,
+                    cp,
+                    m_ghe1,
+                    m_ghe2,
+                    m_ghe3,
+                    c_n_ghe1,
+                    c_n_ghe2,
+                    c_n_ghe3,
+                    H_n_ghe1,
+                    H_n_ghe2,
+                    H_n_ghe3,
+                    nbh_ghe1,
+                    nbh_ghe2,
+                    nbh_ghe3,
+                    self.bhe1,
+                    self.bhe2,
+                    self.bhe3,
+                    time_array,
+                    labels,
+                    units,
+                    t,
+                    q_ghe1,
+                    q_ghe2,
+                    q_ghe3,
+                    results,
+                )
 
             # Create DataFrame and insert units as second row
             df = pd.DataFrame(results)

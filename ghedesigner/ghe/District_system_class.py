@@ -13,7 +13,6 @@ class GHX:
     def __init__(self, cells, matrix_line):
         self.type = "GHX"
         self.input = None
-        self.nbh = None
         self.height = None
         self.downstream_device = None
         self.height = None
@@ -61,16 +60,33 @@ class GHX:
         self.mass_flow_ghe_design = float(cells[9])
         self.matrix_line = matrix_line
 
+        self.nbh = self.n_rows * self.n_cols
+
+
     def generate_g_function_object(self, log_time, calc_g_func_for_multiple_lengths):
         self.r_b = self.bhe.calc_effective_borehole_resistance()
         self.depth = self.bhe.b.D
         self.mass_flow_ghe_borehole_design = self.mass_flow_ghe_design / self.nbh
         h_values = [self.height]
-        coordinates_ghe = [(i * self.row_spacing, j * self.row_spacing) for i in range(int(self.n_rows)) for j in
-                           range(int(self.n_cols))]
+        coordinates_ghe = [
+            (i * self.row_spacing, j * self.row_spacing)
+            for i in range(int(self.n_rows))
+            for j in range(int(self.n_cols))
+        ]
         self.gFunction = calc_g_func_for_multiple_lengths(
-            self.row_spacing, h_values, self.r_b, self.depth, self.mass_flow_ghe_borehole_design, self.bhe_type,
-            log_time, coordinates_ghe, self.bhe.fluid, self.bhe.pipe, self.bhe.grout, self.bhe.soil)
+            self.row_spacing,
+            h_values,
+            self.r_b,
+            self.depth,
+            self.mass_flow_ghe_borehole_design,
+            self.bhe_type,
+            log_time,
+            coordinates_ghe,
+            self.bhe.fluid,
+            self.bhe.pipe,
+            self.bhe.grout,
+            self.bhe.soil,
+        )
         return self.gFunction
 
     def grab_g_function(self, log_time):
@@ -83,9 +99,7 @@ class GHX:
         g_function, rb_value, _, _ = self.gFunction.g_function_interpolation(self.row_spacing / self.height)
 
         # Correct the g-function for borehole radius
-        g_function_corrected = self.gFunction.borehole_radius_correction(
-            g_function, rb_value, self.bhe.b.r_b
-        )
+        g_function_corrected = self.gFunction.borehole_radius_correction(g_function, rb_value, self.bhe.b.r_b)
 
         # Combine STS and LTS g-functions
         g = BaseGHE.combine_sts_lts(
@@ -105,7 +119,6 @@ class GHX:
         return g, g_bhw
 
     def calculation_of_ghe_constant_c_n(self, g, ts, time_array, n_timesteps):
-
         """
         Calculate C_n values for three GHEs based on their g-functions.
 
@@ -148,9 +161,7 @@ class GHX:
 
         # Contribution from the last time step only
         dim1_less_time = np.log((time_n - time_array[i - 1]) / (ts / 3600))
-        H_n_ghe[i] = tg - total_values_ghe[i] + (
-                q_ghe[i - 1] / two_pi_k * g(dim1_less_time)
-        )
+        H_n_ghe[i] = tg - total_values_ghe[i] + (q_ghe[i - 1] / two_pi_k * g(dim1_less_time))
         return H_n_ghe[i]
 
     def generate_ghx_matrix_row(self, matrix_size, m_loop, mass_flow_ghe, cp, H_n_ghe, c_n):
@@ -164,7 +175,7 @@ class GHX:
 
         row1[row_index] = (m_loop - mass_flow_ghe) * cp
         row1[row_index + 3] = mass_flow_ghe * cp
-        row1[neighbour_index] = - m_loop * cp
+        row1[neighbour_index] = -m_loop * cp
 
         row2[row_index + 1] = 1
         row2[row_index + 2] = c_n
@@ -174,8 +185,8 @@ class GHX:
         row3[row_index + 3] = -1
 
         row4[row_index] = mass_flow_ghe * cp
-        row4[row_index + 2] = self.height * (self.n_rows * self.n_cols)
-        row4[row_index + 3] = - mass_flow_ghe * cp
+        row4[row_index + 2] = self.height * self.nbh
+        row4[row_index + 3] = -mass_flow_ghe * cp
 
         rhs1, rhs2, rhs3, rhs4 = 0, H_n_ghe, 0, 0
 
@@ -188,8 +199,8 @@ class Building:
     def __init__(self, cells):
         self.name = str(cells[1])
         self.ID = str(cells[2])
-        self.zoneIDs = ([zones.strip() for zones in cells[3:]])
-        self.zones = []  # list of zones
+        self.zoneIDs = [zones.strip() for zones in cells[3:]]
+        self.zones = []
 
 
 class Zone:
@@ -233,8 +244,8 @@ class Zone:
 
     def zone_mass_flow_rate(self, t_eft, q_net_htg, i):
         hp = self.HP
-        cap_htg = hp.c1_htg * t_eft ** 2 + hp.c2_htg * t_eft + hp.c3_htg
-        cap_clg = hp.c1_clg * t_eft ** 2 + hp.c2_clg * t_eft + hp.c3_clg
+        cap_htg = hp.c1_htg * t_eft**2 + hp.c2_htg * t_eft + hp.c3_htg
+        cap_clg = hp.c1_clg * t_eft**2 + hp.c2_clg * t_eft + hp.c3_clg
         m_single_hp = hp.m_single_hp
 
         q_i = q_net_htg[i]
@@ -265,13 +276,13 @@ class Zone:
 
         # Heating calculations
         slope_htg = 2 * a_htg * t_eft + b_htg
-        ratio_htg = a_htg * t_eft ** 2 + b_htg * t_eft + c_htg
+        ratio_htg = a_htg * t_eft**2 + b_htg * t_eft + c_htg
         u = ratio_htg - slope_htg * t_eft
         v = slope_htg
 
         # Cooling calculations
         slope_clg = 2 * a_clg * t_eft + b_clg
-        ratio_clg = a_clg * t_eft ** 2 + b_clg * t_eft + c_clg
+        ratio_clg = a_clg * t_eft**2 + b_clg * t_eft + c_clg
         a = ratio_clg - slope_clg * t_eft
         b = slope_clg
 
@@ -366,39 +377,39 @@ class GHEHPSystem:
     def read_ghe_hp_system_data(self, data):
         next_matrix_line = 0
         for line in data:  # loop over all the lines
-            cells = [c.strip() for c in line.strip().split(',')]
+            cells = [c.strip() for c in line.strip().split(",")]
             keyword = cells[0].lower()
 
-            if keyword == 'title':
+            if keyword == "title":
                 self.title = cells[1].replace("'", "")
 
-            if keyword == 'ghx':
+            if keyword == "ghx":
                 this_ghx = GHX(cells, matrix_line=next_matrix_line)
                 next_matrix_line += 4
                 self.GHXs.append(this_ghx)
 
-            if keyword == 'building':
+            if keyword == "building":
                 this_building = Building(cells)
                 self.buildings.append(this_building)
 
-            if keyword == 'zone':
+            if keyword == "zone":
                 df = pd.read_csv(cells[5])
-                self.time_array = df['Hours'].values
+                self.time_array = df["Hours"].values
                 self.time_array_size = len(self.time_array)
 
                 this_zone = Zone(cells, next_matrix_line)
                 next_matrix_line += 1
                 self.zones.append(this_zone)
 
-            if keyword == 'node':
+            if keyword == "node":
                 this_node = Node(cells)
                 self.nodes.append(this_node)
 
-            if keyword == 'pipe':
+            if keyword == "pipe":
                 this_pipe = DistPipe(cells)
                 self.pipes.append(this_pipe)
 
-            if keyword == 'hpmodel':
+            if keyword == "hpmodel":
                 this_hp_model = HPmodel(cells)
                 self.HPmodels.append(this_hp_model)
 
@@ -416,13 +427,13 @@ class GHEHPSystem:
         nbh_total = sum(GHX.n_rows * GHX.n_cols for GHX in self.GHXs)
         self.nbh_total = nbh_total
 
-        for GHX in self.GHXs:
-            GHX.fluid = fluid
-            GHX.pipe = pipe
-            GHX.grout = grout
-            GHX.soil = soil
-            GHX.borehole = borehole
-            GHX.sim_params = sim_params
+        for this_ghx in self.GHXs:
+            this_ghx.fluid = fluid
+            this_ghx.pipe = pipe
+            this_ghx.grout = grout
+            this_ghx.soil = soil
+            this_ghx.borehole = borehole
+            this_ghx.sim_params = sim_params
 
         # for getting g_functions and bhe object
         for GHX in self.GHXs:
@@ -430,8 +441,9 @@ class GHEHPSystem:
             GHX.height = GHX.borehole.H
             GHX.nbh = GHX.n_rows * GHX.n_cols
             GHX.mass_flow_ghe_borehole_design = GHX.mass_flow_ghe_design / GHX.nbh
-            GHX.bhe = get_bhe_object(GHX.bhe_type, GHX.mass_flow_ghe_borehole_design, GHX.fluid, GHX.borehole,
-                                     GHX.pipe, GHX.grout, GHX.soil)
+            GHX.bhe = get_bhe_object(
+                GHX.bhe_type, GHX.mass_flow_ghe_borehole_design, GHX.fluid, GHX.borehole, GHX.pipe, GHX.grout, GHX.soil
+            )
             GHX.bhe_eq = GHX.bhe.to_single()
             GHX.bhe_eq.calc_sts_g_functions()
             ts = GHX.bhe_eq.t_s
@@ -444,14 +456,17 @@ class GHEHPSystem:
 
             # Initializing the values
             for GHX in self.GHXs:
-                GHX.H_n_ghe, GHX.total_values_ghe, GHX.q_ghe = np.full(n_timesteps, tg), np.zeros(
-                    n_timesteps), np.zeros(n_timesteps)
+                GHX.H_n_ghe, GHX.total_values_ghe, GHX.q_ghe = (
+                    np.full(n_timesteps, tg),
+                    np.zeros(n_timesteps),
+                    np.zeros(n_timesteps),
+                )
 
             # Assigning indices to zones
             for idx, zone in enumerate(self.zones):
                 zone.index = idx
 
-            # Initializing t_eft, t__mena, q_ghe, t_exit
+            # Initializing t_eft, t__mean, q_ghe, t_exit
             for zone in self.zones:
                 zone.t_eft = np.full(n_timesteps, tg)
 
@@ -495,8 +510,9 @@ class GHEHPSystem:
                 mass_flow_ghe = m_loop * split_ratio
                 g = self.g
                 c_n = self.c_n[i]
-                H_n_ghe = GHX.compute_history_term(i, time_array, ts, two_pi_k, g, tg, GHX.H_n_ghe,
-                                                   GHX.total_values_ghe, q_ghe)
+                H_n_ghe = GHX.compute_history_term(
+                    i, time_array, ts, two_pi_k, g, tg, GHX.H_n_ghe, GHX.total_values_ghe, q_ghe
+                )
                 rows, rhs_values = GHX.generate_ghx_matrix_row(matrix_size, m_loop, mass_flow_ghe, cp, H_n_ghe, c_n)
                 for row, rhs in zip(rows, rhs_values):
                     matrix_rows.append(row)
@@ -511,14 +527,14 @@ class GHEHPSystem:
             for j, zone in enumerate(self.zones):
                 zone.t_eft[i] = X[j]
 
-            X_ghe = X[len(self.zones):]
+            X_ghe = X[len(self.zones) :]
 
-            for j, GHX in enumerate(self.GHXs):
+            for j, this_ghx in enumerate(self.GHXs):
                 base = 4 * j
-                GHX.t_eft[i] = X_ghe[base]
-                GHX.t_mean[i] = X_ghe[base + 1]
-                GHX.q_ghe[i] = X_ghe[base + 2]
-                GHX.t_exit[i] = X_ghe[base + 3]
+                this_ghx.t_eft[i] = X_ghe[base]
+                this_ghx.t_mean[i] = X_ghe[base + 1]
+                this_ghx.q_ghe[i] = X_ghe[base + 2]
+                this_ghx.t_exit[i] = X_ghe[base + 3]
 
     def create_output(self):
         # create csv files
@@ -530,11 +546,11 @@ class GHEHPSystem:
             for zone in self.zones:
                 row.append(zone.t_eft[i])
 
-            for GHX in self.GHXs:
-                row.append(GHX.t_eft[i])
-                row.append(GHX.t_mean[i])
-                row.append(GHX.q_ghe[i])
-                row.append(GHX.t_exit[i])
+            for this_ghx in self.GHXs:
+                row.append(this_ghx.t_eft[i])
+                row.append(this_ghx.t_mean[i])
+                row.append(this_ghx.q_ghe[i])
+                row.append(this_ghx.t_exit[i])
 
             data_rows.append(row)
 
@@ -544,13 +560,8 @@ class GHEHPSystem:
         for j, zone in enumerate(self.zones):
             column_names.append(f"Zone{j}_t_eft")
 
-        for j, GHX in enumerate(self.GHXs):
-            column_names += [
-                f"GHX{j}_t_eft",
-                f"GHX{j}_t_mean",
-                f"GHX{j}_q_ghe",
-                f"GHX{j}_t_exit"
-            ]
+        for j, _ in enumerate(self.GHXs):
+            column_names += [f"GHX{j}_t_eft", f"GHX{j}_t_mean", f"GHX{j}_q_ghe", f"GHX{j}_t_exit"]
 
         # Step 3: Create and save DataFrame
         self.df = pd.DataFrame(data_rows, columns=column_names)
@@ -558,7 +569,6 @@ class GHEHPSystem:
         self.df.to_csv("output_results.csv", float_format="%0.8f")
 
     def update_connections(self):
-
         for pipe in self.pipes:
             pipe.input = find_item_by_id(pipe.node_in_name, self.nodes)
             pipe.output = find_item_by_id(pipe.node_out_name, self.nodes)

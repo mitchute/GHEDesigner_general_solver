@@ -1,12 +1,13 @@
-from pathlib import Path
 import json
-from ghedesigner.enums import BHPipeType, TimestepType
-from ghedesigner.media import Soil, Grout, Pipe, GHEFluid
-from pygfunction.boreholes import Borehole
-from ghedesigner.ghe.simulation import SimulationParameters
-from ghedesigner.ghe.multiple_ghe_hp_addition import MultiGHEHP
-from ghedesigner.ghe.gfunction import calc_g_func_for_multiple_lengths
 import time
+from pathlib import Path
+
+from pygfunction.boreholes import Borehole
+
+from ghedesigner.enums import BHPipeType
+from ghedesigner.ghe.multiple_ghe_hp_addition import MultiGHEHP
+from ghedesigner.ghe.simulation import SimulationParameters
+from ghedesigner.media import GHEFluid, Grout, Pipe, Soil
 
 # ✅ Start timing before simulation setup
 start_time = time.time()
@@ -14,7 +15,7 @@ json_path = Path("C:/Users/nbast/GHEDesigner_fork/demos/find_design_bi_rectangle
 
 
 def read_data_from_json_file():
-    with open("find_design_bi_rectangle_single_u_tube.json", 'r') as f:
+    with open("find_design_bi_rectangle_single_u_tube.json") as f:
         data = json.load(f)
 
     # Extract input values
@@ -26,12 +27,7 @@ def read_data_from_json_file():
     geometric_data = data["ground-heat-exchanger"]["ghe1"]["geometric_constraints"]
 
     # Construct objects
-    fluid = (
-        GHEFluid(
-        fluid_data["fluid_name"],
-        fluid_data["concentration_percent"],
-        fluid_data["temperature"]
-    ))
+    fluid = GHEFluid(fluid_data["fluid_name"], fluid_data["concentration_percent"], fluid_data["temperature"])
     # Pipe object (Single U-tube)
     r_in = pipe_data["inner_diameter"] / 2.0
     r_out = pipe_data["outer_diameter"] / 2.0
@@ -39,15 +35,7 @@ def read_data_from_json_file():
 
     pipe_positions = Pipe.place_pipes(s, r_out, 1)
 
-    pipe = Pipe(
-        pipe_positions,
-        r_in,
-        r_out,
-        s,
-        pipe_data["roughness"],
-        pipe_data["conductivity"],
-        pipe_data["rho_cp"]
-    )
+    pipe = Pipe(pipe_positions, r_in, r_out, s, pipe_data["roughness"], pipe_data["conductivity"], pipe_data["rho_cp"])
 
     soil = Soil(soil_data["conductivity"], soil_data["rho_cp"], soil_data["undisturbed_temp"])
     grout = Grout(grout_data["conductivity"], grout_data["rho_cp"])
@@ -61,7 +49,7 @@ def read_data_from_json_file():
 
     # Dummy g-function calculation (log_time and coordinates are provided in ground_heat_exchangers.py)
     h_values = [100.0]
-    log_time = [-10 + i*(14/24) for i in range(25)]
+    log_time = [-10 + i * (14 / 24) for i in range(25)]
     r_b = borehole.r_b
     depth = borehole.D
 
@@ -77,7 +65,7 @@ def read_data_from_json_file():
         grout=grout,
         soil=soil,
         sim_params=sim_params,
-        hourly_extraction_ground_loads=hourly_ground_loads
+        hourly_extraction_ground_loads=hourly_ground_loads,
     )
 
     # ✅ Run simulation using multiple GHE setup
@@ -89,6 +77,7 @@ def read_data_from_json_file():
     end_time = time.time()
     elapsed_time = end_time - start_time
     print(f"✅ 3-GHE simulation completed in {elapsed_time:.2f} seconds.")
+
 
 #
 # from pathlib import Path
