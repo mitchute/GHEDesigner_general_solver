@@ -598,7 +598,7 @@ class GHEHPSystem:
         # Step 3: Create and save DataFrame
         self.df = pd.DataFrame(data_rows, columns=column_names)
         self.df.index.name = "Hour"
-        self.df.to_csv("output_results.csv")
+        self.df.to_csv("output_results.csv", float_format="%0.8f")
 
     def UpdateConnections(self):
 
