@@ -10,21 +10,12 @@ from ghedesigner.media import Grout, Pipe, Soil
 
 
 class GHX:
-    def __init__(self):
-        self.ID = None
+    def __init__(self, cells, matrix_line):
         self.type = "GHX"
-        self.nodeID = None
         self.input = None
-        self.n_rows = None
-        self.n_cols = None
-        self.row_spacing = None
-        self.col_spacing = None
-        self.beta = None
         self.nbh = None
         self.height = None
-        self.upstream_device = None
         self.downstream_device = None
-        self.matrix_line = None
         self.height = None
         self.row_index = None
 
@@ -48,7 +39,7 @@ class GHX:
         self.mass_flow_ghe_borehole = None
         self.depth = None
 
-        self.mass_flow_ghe_design = None
+        # self.mass_flow_ghe_design = None
         self.mass_flow_ghe_borehole_design = None
         self.H_n_ghe = None
         self.total_values_ghe = None
@@ -59,6 +50,17 @@ class GHX:
         self.q_ghe = None
         self.t_exit = None
 
+        self.ID = str(cells[1])
+        self.nodeID = str(cells[2])
+        self.n_rows = float(cells[3])
+        self.n_cols = float(cells[4])
+        self.row_spacing = float(cells[5])
+        self.col_spacing = float(cells[6])
+        self.beta = float(cells[7])
+        self.ghe_height = float(cells[8])
+        self.mass_flow_ghe_design = float(cells[9])
+        self.matrix_line = matrix_line
+
     def generate_g_function_object(self, log_time, calc_g_func_for_multiple_lengths):
         self.r_b = self.bhe.calc_effective_borehole_resistance()
         self.depth = self.bhe.b.D
@@ -68,9 +70,7 @@ class GHX:
                            range(int(self.n_cols))]
         self.gFunction = calc_g_func_for_multiple_lengths(
             self.row_spacing, h_values, self.r_b, self.depth, self.mass_flow_ghe_borehole_design, self.bhe_type,
-            log_time,
-            coordinates_ghe, self.bhe.fluid, self.bhe.pipe, self.bhe.grout, self.bhe.soil
-        )
+            log_time, coordinates_ghe, self.bhe.fluid, self.bhe.pipe, self.bhe.grout, self.bhe.soil)
         return self.gFunction
 
     def grab_g_function(self, log_time):
@@ -153,7 +153,7 @@ class GHX:
         )
         return H_n_ghe[i]
 
-    def generate_GHX_matrix_row(self, matrix_size, m_loop, mass_flow_ghe, cp, H_n_ghe, c_n):
+    def generate_ghx_matrix_row(self, matrix_size, m_loop, mass_flow_ghe, cp, H_n_ghe, c_n):
         row1 = np.zeros(matrix_size)
         row2 = np.zeros(matrix_size)
         row3 = np.zeros(matrix_size)
@@ -185,32 +185,34 @@ class GHX:
 
 
 class Building:
-    def __init__(self):
-        self.name = None
-        self.ID = None
-        self.zoneIDs = []  # list of zone ids
+    def __init__(self, cells):
+        self.name = str(cells[1])
+        self.ID = str(cells[2])
+        self.zoneIDs = ([zones.strip() for zones in cells[3:]])
         self.zones = []  # list of zones
 
 
 class Zone:
-    def __init__(self):
+    def __init__(self, cells, matrix_line):
         # values read from the file
-        self.name = None
-        self.ID = None
         self.type = "zone"
-        self.nodeID = None
         self.node = None
-        self.HPmodel = None
         self.HP = None
-        self.loads_file = None
         self.matrix_line = None
         self.row_index = None
         self.index = None
         self.mass_flow_zone = None
         self.df_zone = None
         self.t_eft = None
-        self.upstream_device = None
         self.downstream_device = None
+
+        self.name = str(cells[1])
+        self.ID = str(cells[2])
+        self.nodeID = str(cells[3])
+        self.HPmodel = str(cells[4])
+        self.loads_file = pd.read_csv(cells[5])
+        self.beta = float(cells[6])
+        self.matrix_line = matrix_line
 
     def q_net_htg(self):
         """
@@ -289,39 +291,38 @@ class Zone:
 
 
 class Node:
-    def __init__(self):
-        self.ID = None
-        self.type = None
-        self.x = None
-        self.y = None
-        self.z = None
+    def __init__(self, cells):
         self.input = None
         self.output = None
         self.diversion = None
+        self.ID = str(cells[1])
+        self.type = str(cells[2])
 
 
 class DistPipe:
-    def __init__(self):
-        self.ID = None
+    def __init__(self, cells):
         self.node_in_name = None
         self.node_out_name = None
         self.input = None
         self.output = None
-        self.length = None
         self.type = None
+        self.ID = str(cells[1])
+        self.type = str(cells[2])
+        self.node_in_name = str(cells[3])
+        self.node_out_name = str(cells[4])
 
 
 class HPmodel:
-    def __init__(self):
-        self.name = None
-        self.ID = None
-        self.a_htg, self.b_htg, self.c_htg = None, None, None
-        self.a_clg, self.b_clg, self.c_clg = None, None, None
-        self.c1_htg, self.c2_htg, self.c3_htg = None, None, None
-        self.c1_clg, self.c2_clg, self.c3_clg = None, None, None
-        self.m_single_hp = None
-        self.design_htg_cap = None
-        self.design_clg_cap = None
+    def __init__(self, cells):
+        self.name = str(cells[1])
+        self.ID = str(cells[2])
+        self.a_htg, self.b_htg, self.c_htg = (float(cells[3]), float(cells[4]), float(cells[5]))
+        self.a_clg, self.b_clg, self.c_clg = (float(cells[6]), float(cells[7]), float(cells[8]))
+        self.c1_htg, self.c2_htg, self.c3_htg = (float(cells[9]), float(cells[10]), float(cells[11]))
+        self.c1_clg, self.c2_clg, self.c3_clg = (float(cells[12]), float(cells[13]), float(cells[14]))
+        self.m_single_hp = float(cells[15])
+        self.m_design_htg_cap = float(cells[16])
+        self.m_design_clg_cap = float(cells[17])
 
 
 class GHEHPSystem:
@@ -356,13 +357,13 @@ class GHEHPSystem:
         self.bhe_eq = None
         self.c_n = None
         self.m_loop = None
-
         self.df = None
+        self.beta = 1.5
 
-    def ProcessFileData(self, data):
-        self.read_GHEHPSystem_data(data)
+    def process_file_data(self, data):
+        self.read_ghe_hp_system_data(data)
 
-    def read_GHEHPSystem_data(self, data):
+    def read_ghe_hp_system_data(self, data):
         next_matrix_line = 0
         for line in data:  # loop over all the lines
             cells = [c.strip() for c in line.strip().split(',')]
@@ -372,89 +373,45 @@ class GHEHPSystem:
                 self.title = cells[1].replace("'", "")
 
             if keyword == 'ghx':
-                thisghx = GHX()
-                thisghx.ID = str(cells[1])
-                thisghx.nodeID = str(cells[2])
-                thisghx.n_rows = float(cells[3])
-                thisghx.n_cols = float(cells[4])
-                thisghx.row_spacing = float(cells[5])
-                thisghx.col_spacing = float(cells[6])
-                thisghx.beta = float(cells[7])
-                thisghx.ghe_height = float(cells[8])
-                thisghx.mass_flow_ghe_design = float(cells[9])
-                thisghx.matrix_line = next_matrix_line
+                this_ghx = GHX(cells, matrix_line=next_matrix_line)
                 next_matrix_line += 4
-                self.GHXs.append(thisghx)
+                self.GHXs.append(this_ghx)
 
             if keyword == 'building':
-                thisbuilding = Building()
-                thisbuilding.name = str(cells[1])
-                thisbuilding.ID = str(cells[2])
-                thisbuilding.zoneIDs = ([zones.strip() for zones in cells[3:]])
-                self.buildings.append(thisbuilding)
+                this_building = Building(cells)
+                self.buildings.append(this_building)
 
             if keyword == 'zone':
                 df = pd.read_csv(cells[5])
                 self.time_array = df['Hours'].values
                 self.time_array_size = len(self.time_array)
 
-                thiszone = Zone()
-                thiszone.name = str(cells[1])
-                thiszone.ID = str(cells[2])
-                thiszone.nodeID = str(cells[3])
-                thiszone.HPmodel = str(cells[4])
-                thiszone.loads_file = pd.read_csv(cells[5])
-                thiszone.beta = float(cells[6])
-                thiszone.matrix_line = next_matrix_line
+                this_zone = Zone(cells, next_matrix_line)
                 next_matrix_line += 1
-                self.zones.append(thiszone)
+                self.zones.append(this_zone)
 
             if keyword == 'node':
-                thisnode = Node()
-                thisnode.ID = str(cells[1])
-                thisnode.type = str(cells[2])
-                thisnode.x = float(cells[3])
-                thisnode.y = float(cells[4])
-                thisnode.z = float(cells[5])
-                self.nodes.append(thisnode)
+                this_node = Node(cells)
+                self.nodes.append(this_node)
 
             if keyword == 'pipe':
-                thispipe = DistPipe()
-                thispipe.ID = str(cells[1])
-                thispipe.type = str(cells[2])
-                thispipe.node_in_name = str(cells[3])
-                thispipe.node_out_name = str(cells[4])
-                thispipe.length = float(cells[5])
-                self.pipes.append(thispipe)
+                this_pipe = DistPipe(cells)
+                self.pipes.append(this_pipe)
 
             if keyword == 'hpmodel':
-                thishpmodel = HPmodel()
-                thishpmodel.name = str(cells[1])
-                thishpmodel.ID = str(cells[2])
-                thishpmodel.a_htg, thishpmodel.b_htg, thishpmodel.c_htg = (float(cells[3]), float(cells[4]),
-                                                                           float(cells[5]))
-                thishpmodel.a_clg, thishpmodel.b_clg, thishpmodel.c_clg = (float(cells[6]), float(cells[7]),
-                                                                           float(cells[8]))
-                thishpmodel.c1_htg, thishpmodel.c2_htg, thishpmodel.c3_htg = (float(cells[9]), float(cells[10]),
-                                                                              float(cells[11]))
-                thishpmodel.c1_clg, thishpmodel.c2_clg, thishpmodel.c3_clg = (float(cells[12]), float(cells[13]),
-                                                                              float(cells[14]))
-                thishpmodel.m_single_hp = float(cells[15])
-                thishpmodel.m_design_htg_cap = float(cells[16])
-                thishpmodel.m_design_clg_cap = float(cells[17])
-                self.HPmodels.append(thishpmodel)
+                this_hp_model = HPmodel(cells)
+                self.HPmodels.append(this_hp_model)
 
         # end for line
-        self.UpdateConnections()
+        self.update_connections()
 
-    def solveSystem(self, fluid, pipe, grout, soil, borehole, sim_params):
+    def solve_system(self, fluid, pipe, grout, soil, borehole, sim_params):
         # precompute all time invariant constants
 
         time_array = self.time_array
         n_timesteps = self.time_array_size
         matrix_size = 4 * len(self.GHXs) + len(self.zones)
         self.log_time = np.linspace(-10, 4, 25).tolist()
-        self.beta = 1.5  # default assumed value
 
         nbh_total = sum(GHX.n_rows * GHX.n_cols for GHX in self.GHXs)
         self.nbh_total = nbh_total
@@ -540,7 +497,7 @@ class GHEHPSystem:
                 c_n = self.c_n[i]
                 H_n_ghe = GHX.compute_history_term(i, time_array, ts, two_pi_k, g, tg, GHX.H_n_ghe,
                                                    GHX.total_values_ghe, q_ghe)
-                rows, rhs_values = GHX.generate_GHX_matrix_row(matrix_size, m_loop, mass_flow_ghe, cp, H_n_ghe, c_n)
+                rows, rhs_values = GHX.generate_ghx_matrix_row(matrix_size, m_loop, mass_flow_ghe, cp, H_n_ghe, c_n)
                 for row, rhs in zip(rows, rhs_values):
                     matrix_rows.append(row)
                     matrix_rhs.append(rhs)
@@ -563,7 +520,7 @@ class GHEHPSystem:
                 GHX.q_ghe[i] = X_ghe[base + 2]
                 GHX.t_exit[i] = X_ghe[base + 3]
 
-    def createOutput(self):
+    def create_output(self):
         # create csv files
         n_timesteps = self.time_array_size
         data_rows = []
@@ -600,7 +557,7 @@ class GHEHPSystem:
         self.df.index.name = "Hour"
         self.df.to_csv("output_results.csv", float_format="%0.8f")
 
-    def UpdateConnections(self):
+    def update_connections(self):
 
         for pipe in self.pipes:
             pipe.input = find_item_by_id(pipe.node_in_name, self.nodes)
@@ -644,7 +601,6 @@ class GHEHPSystem:
             while device.type != "GHX" and device.type != "zone":
                 device = device.output
 
-            GHX.upstream_device = device
             device.downstream_device = GHX
 
         # find the upstream device
@@ -665,7 +621,6 @@ class GHEHPSystem:
             while device.type != "GHX" and device.type != "zone":
                 device = device.output
 
-            zone.upstream_device = device
             device.downstream_device = zone
 
 
