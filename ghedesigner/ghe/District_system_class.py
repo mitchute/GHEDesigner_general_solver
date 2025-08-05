@@ -352,9 +352,6 @@ class GHEHPSystem:
         self.beta = 1.5
         self.matrix_size = 0
 
-    def process_file_data(self, data):
-        self.read_ghe_hp_system_data(data)
-
     def read_ghe_hp_system_data(self, data):
         next_matrix_line = 0
         for line in data:  # loop over all the lines
