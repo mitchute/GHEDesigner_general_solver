@@ -243,8 +243,8 @@ class Zone:
         return h - c
 
     def zone_mass_flow_rate(self, t_eft, q_net_htg, i):
-        cap_htg = self.hp.c1_htg * t_eft ** 2 + self.hp.c2_htg * t_eft + self.hp.c3_htg
-        cap_clg = self.hp.c1_clg * t_eft ** 2 + self.hp.c2_clg * t_eft + self.hp.c3_clg
+        cap_htg = self.hp.c1_htg * t_eft**2 + self.hp.c2_htg * t_eft + self.hp.c3_htg
+        cap_clg = self.hp.c1_clg * t_eft**2 + self.hp.c2_clg * t_eft + self.hp.c3_clg
         m_single_hp = self.hp.m_single_hp
 
         q_i = q_net_htg[i]
@@ -266,13 +266,13 @@ class Zone:
 
         # Heating calculations
         slope_htg = 2 * self.hp.a_htg * t_eft + self.hp.b_htg
-        ratio_htg = self.hp.a_htg * t_eft ** 2 + self.hp.b_htg * t_eft + self.hp.c_htg
+        ratio_htg = self.hp.a_htg * t_eft**2 + self.hp.b_htg * t_eft + self.hp.c_htg
         u = ratio_htg - slope_htg * t_eft
         v = slope_htg
 
         # Cooling calculations
         slope_clg = 2 * self.hp.a_clg * t_eft + self.hp.b_clg
-        ratio_clg = self.hp.a_clg * t_eft ** 2 + self.hp.b_clg * t_eft + self.hp.c_clg
+        ratio_clg = self.hp.a_clg * t_eft**2 + self.hp.b_clg * t_eft + self.hp.c_clg
         a = ratio_clg - slope_clg * t_eft
         b = slope_clg
 
@@ -416,7 +416,6 @@ class GHEHPSystem:
             this_zone.matrix_size = self.matrix_size
 
     def solve_system(self, fluid, pipe, grout, soil, borehole, sim_params):
-
         ts = 0
         cp = 0
         tg = 0
@@ -501,8 +500,7 @@ class GHEHPSystem:
             for j, this_ghx in enumerate(self.GHXs):
                 q_ghe = this_ghx.q_ghe[:i]
                 two_pi_k = TWO_PI * this_ghx.soil.k
-                nbh = this_ghx.n_rows * this_ghx.n_cols
-                split_ratio = nbh / self.nbh_total
+                split_ratio = this_ghx.nbh / self.nbh_total
                 mass_flow_ghe = m_loop * split_ratio
                 g = self.g
                 c_n = self.c_n[i]
@@ -523,7 +521,7 @@ class GHEHPSystem:
             for j, this_zone in enumerate(self.zones):
                 this_zone.t_eft[i] = X[j]
 
-            X_ghe = X[len(self.zones):]
+            X_ghe = X[len(self.zones) :]
 
             for j, this_ghx in enumerate(self.GHXs):
                 base = 4 * j
@@ -533,8 +531,6 @@ class GHEHPSystem:
                 this_ghx.t_exit[i] = X_ghe[base + 3]
 
     def create_output(self):
-        # create csv files
-
         data_rows = []
 
         for i in range(self.n_timesteps):
@@ -580,10 +576,10 @@ class GHEHPSystem:
             this_zone.input = find_item_by_id(this_zone.nodeID, self.nodes)
             this_zone.input.output = this_zone
 
-        for building in self.buildings:
-            for zoneID in building.zoneIDs:
+        for this_bldg in self.buildings:
+            for zoneID in this_bldg.zoneIDs:
                 this_zone = find_item_by_id(zoneID, self.zones)
-                building.zones.append(this_zone)
+                this_bldg.zones.append(this_zone)
 
         for this_ghx in self.GHXs:
             this_ghx.input = find_item_by_id(this_ghx.nodeID, self.nodes)
