@@ -10,7 +10,7 @@ start_time = time.time()
 
 def main():
     with open("3ghe-6hp_layout_input file.txt") as f1:
-        data = f1.readlines()  # read the entire file as a list of strings
+        data = f1.readlines()
 
     System.read_ghe_hp_system_data(data)
 
