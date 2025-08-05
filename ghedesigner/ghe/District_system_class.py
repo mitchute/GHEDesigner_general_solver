@@ -14,7 +14,6 @@ class GHX:
     def __init__(self, cells, matrix_line):
         self.type = "GHX"
         self.input = None
-        self.height = None
         self.downstream_device = None
         self.height = None
         self.row_index = None
@@ -35,8 +34,6 @@ class GHX:
         self.bhe = None
         self.r_b = None
         self.gFunction = None
-        self.mass_flow_ghe = None
-        self.mass_flow_ghe_borehole = None
         self.depth = None
 
         # self.mass_flow_ghe_design = None
@@ -210,8 +207,6 @@ class Zone:
         self.node = None
         self.hp = None
         self.row_index = None
-        self.index = None
-        self.mass_flow_zone = None
         self.df_zone = None
         self.t_eft = None
         self.downstream_device = None
@@ -243,17 +238,17 @@ class Zone:
         return h - c
 
     def zone_mass_flow_rate(self, t_eft, q_net_htg, i):
-        cap_htg = self.hp.c1_htg * t_eft**2 + self.hp.c2_htg * t_eft + self.hp.c3_htg
-        cap_clg = self.hp.c1_clg * t_eft**2 + self.hp.c2_clg * t_eft + self.hp.c3_clg
+        cap_htg = self.hp.c1_htg * t_eft ** 2 + self.hp.c2_htg * t_eft + self.hp.c3_htg
+        cap_clg = self.hp.c1_clg * t_eft ** 2 + self.hp.c2_clg * t_eft + self.hp.c3_clg
         m_single_hp = self.hp.m_single_hp
 
         q_i = q_net_htg[i]
         hp_capacity = cap_htg if q_i > 0 else cap_clg
 
         # compute mass flow rates
-        self.mass_flow_zone = np.abs(q_i) / hp_capacity * m_single_hp
+        mass_flow_zone = np.abs(q_i) / hp_capacity * m_single_hp
 
-        return self.mass_flow_zone
+        return mass_flow_zone
 
     def calculate_r1_r2(self, t_eft, hour_index):
         """
@@ -266,13 +261,13 @@ class Zone:
 
         # Heating calculations
         slope_htg = 2 * self.hp.a_htg * t_eft + self.hp.b_htg
-        ratio_htg = self.hp.a_htg * t_eft**2 + self.hp.b_htg * t_eft + self.hp.c_htg
+        ratio_htg = self.hp.a_htg * t_eft ** 2 + self.hp.b_htg * t_eft + self.hp.c_htg
         u = ratio_htg - slope_htg * t_eft
         v = slope_htg
 
         # Cooling calculations
         slope_clg = 2 * self.hp.a_clg * t_eft + self.hp.b_clg
-        ratio_clg = self.hp.a_clg * t_eft**2 + self.hp.b_clg * t_eft + self.hp.c_clg
+        ratio_clg = self.hp.a_clg * t_eft ** 2 + self.hp.b_clg * t_eft + self.hp.c_clg
         a = ratio_clg - slope_clg * t_eft
         b = slope_clg
 
@@ -306,7 +301,6 @@ class DistPipe:
         self.node_out_name = None
         self.input = None
         self.output = None
-        self.type = None
         self.ID = str(cells[1])
         self.type = str(cells[2])
         self.node_in_name = str(cells[3])
@@ -335,11 +329,8 @@ class GHEHPSystem:
         self.nodes = []
         self.pipes = []
         self.HPmodels = []
-        self.current_row = 0
-        self.m_loop = None
         self.bhe = None
         self.g_value = {}
-        self.c_n = {}
         self.time_array = None
         self.n_timesteps = None
 
@@ -349,7 +340,6 @@ class GHEHPSystem:
         self.grout = None
         self.borehole = None
         self.fluid = None
-        self.mass_flow_ghe_borehole = None
         self.nbh_total = None
         self.gFunction = None
         self.g = None
@@ -415,7 +405,7 @@ class GHEHPSystem:
         for this_zone in self.zones:
             this_zone.matrix_size = self.matrix_size
 
-    def solve_system(self, fluid, pipe, grout, soil, borehole, sim_params):
+    def solve_system(self, fluid, pipe, grout, soil, borehole):
         ts = 0
         cp = 0
         tg = 0
@@ -425,8 +415,6 @@ class GHEHPSystem:
             this_ghx.pipe = pipe
             this_ghx.grout = grout
             this_ghx.soil = soil
-            this_ghx.borehole = borehole
-            this_ghx.sim_params = sim_params
             this_ghx.borehole = borehole
             this_ghx.height = this_ghx.borehole.H
             this_ghx.nbh = this_ghx.n_rows * this_ghx.n_cols
@@ -442,10 +430,11 @@ class GHEHPSystem:
             )
             this_ghx.bhe_eq = this_ghx.bhe.to_single()
             this_ghx.bhe_eq.calc_sts_g_functions()
+
             ts = this_ghx.bhe_eq.t_s
             cp = this_ghx.bhe.fluid.cp
             tg = this_ghx.bhe.soil.ugt
-            borehole.H = this_ghx.height
+
             self.gFunction = this_ghx.generate_g_function_object(self.log_time)
             self.g, _ = this_ghx.grab_g_function(self.log_time)
             self.c_n = this_ghx.calculation_of_ghe_constant_c_n(self.g, ts, self.time_array, self.n_timesteps)
@@ -460,10 +449,6 @@ class GHEHPSystem:
             this_ghx.t_mean = np.full(self.n_timesteps, tg)
             this_ghx.q_ghe = np.zeros(self.n_timesteps)
             this_ghx.t_exit = np.full(self.n_timesteps, tg)
-
-        # Assigning indices to zones
-        for idx, this_zone in enumerate(self.zones):
-            this_zone.index = idx
 
         # Initializing t_eft, t__mean, q_ghe, t_exit
         for this_zone in self.zones:
@@ -521,7 +506,7 @@ class GHEHPSystem:
             for j, this_zone in enumerate(self.zones):
                 this_zone.t_eft[i] = X[j]
 
-            X_ghe = X[len(self.zones) :]
+            X_ghe = X[len(self.zones):]
 
             for j, this_ghx in enumerate(self.GHXs):
                 base = 4 * j

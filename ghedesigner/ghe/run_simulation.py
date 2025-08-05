@@ -1,7 +1,6 @@
 import time
 
 from District_system_class import GHEHPSystem
-
 from ghedesigner.ghe.runner_code import read_data_from_json_file
 
 System = GHEHPSystem()
@@ -14,8 +13,8 @@ def main():
 
     System.read_ghe_hp_system_data(data)
 
-    fluid, pipe, grout, soil, borehole, sim_params = read_data_from_json_file()
-    System.solve_system(fluid, pipe, grout, soil, borehole, sim_params)
+    fluid, pipe, grout, soil, borehole, _ = read_data_from_json_file()
+    System.solve_system(fluid, pipe, grout, soil, borehole)
     System.create_output()
     System.current_frame = 1
 
